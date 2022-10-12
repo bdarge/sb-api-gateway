@@ -1,0 +1,101 @@
+basePath: /v1
+definitions:
+  models.Account:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  models.Login:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  models.Order:
+    properties:
+      currency:
+        type: string
+      customerId:
+        type: integer
+      deliveryDate:
+        type: string
+      description:
+        type: string
+    type: object
+  pb.CreateOrderResponse:
+    properties:
+      error:
+        type: string
+      id:
+        type: integer
+      status:
+        type: integer
+    type: object
+info:
+  contact: {}
+  description: Swagger API for Business X.
+  termsOfService: http://swagger.io/terms/
+  title: SM Swagger API
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      operationId: login
+      parameters:
+      - description: Add login credentials
+        in: body
+        name: login
+        required: true
+        schema:
+          $ref: '#/definitions/models.Login'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Account'
+      security:
+      - ApiKeyAuth: []
+      summary: Authenticate a user
+  /auth/register:
+    post:
+      operationId: register
+      parameters:
+      - description: Add account details
+        in: body
+        name: register
+        required: true
+        schema:
+          $ref: '#/definitions/models.Account'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Account'
+      summary: Register a user
+  /order:
+    post:
+      operationId: create_order
+      parameters:
+      - description: Order
+        in: body
+        name: order
+        required: true
+        schema:
+          $ref: '#/definitions/models.Order'
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/pb.CreateOrderResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Create an order
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

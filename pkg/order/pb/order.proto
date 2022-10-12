@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package order;
+
+option go_package = "./pkg/order/pb";
+
+service OrderService {
+  rpc CreateOrder(CreateOrderRequest) returns (CreateOrderResponse) {}
+  rpc GetOrder(GetOrderRequest) returns (GetOrderResponse) {}
+}
+
+message CreateOrderRequest {
+  string currency = 1;
+  string description = 2;
+  int64 customerId = 3;
+  string deliveryDate = 4;
+  int64 createdBy = 5;
+}
+
+message CreateOrderResponse {
+  int64 status = 1;
+  string error = 2;
+  int64 id = 3;
+}
+
+message OrderData {
+  int64 id = 1;
+  string description = 2;
+  int64 invoiceNumber = 3;
+  int64 orderNumber = 4;
+  int64 currency = 5;
+  int64 customerId = 6;
+  int64 createdBy = 7;
+  string deliveryDate = 8;
+  string createdAt = 9;
+  string updatedAt = 10;
+  string deletedAt = 11;
+}
+
+message GetOrderRequest {
+  int64 id = 1;
+}
+
+message GetOrderResponse {
+  string error = 1;
+  int64 id = 2;
+  OrderData data = 3;
+}
