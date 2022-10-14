@@ -34,8 +34,8 @@ func Register(ctx *gin.Context, c pb.AuthServiceClient) {
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError,
 			gin.H{
-				"error":   "VALIDATEERR-2",
-				"message": "Error happened at the server, please check later."})
+				"error":   "ACTIONERR-2",
+				"message": "An error happened, please check later."})
 		return
 	}
 

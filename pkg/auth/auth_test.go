@@ -123,7 +123,7 @@ func TestRegister(t *testing.T) {
 	}{
 		{
 			name:   "remote server error",
-			error:  map[string]string{"error": "VALIDATEERR-2", "message": "Error happened at the server, please check later."},
+			error:  map[string]string{"error": "ACTIONERR-2", "message": "An error happened, please check later."},
 			status: 500,
 			body:   models.Account{Email: "fake@fake.com", Password: "some_value"},
 			dependent: func(ctx context.Context, in *pb.RegisterRequest, opts ...grpc.CallOption) (*pb.RegisterResponse, error) {
