@@ -1,18 +1,16 @@
 package auth
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"github.com/bdarge/sb-api-gateway/pkg/auth/pb"
 	"github.com/bdarge/sb-api-gateway/pkg/models"
-	"github.com/gin-gonic/gin"
+	"github.com/bdarge/sb-api-gateway/pkg/utils"
 	"google.golang.org/grpc"
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"reflect"
 	"testing"
 )
@@ -89,7 +87,7 @@ func TestLogin(t *testing.T) {
 
 	for _, tt := range tests {
 		w := httptest.NewRecorder()
-		ctx := mockPostTest(w, tt.body)
+		ctx := utils.MockPostTest(w, tt.body)
 		client := new(MockAuthServiceClient)
 		client.LoginFunc = tt.dependent
 		Login(ctx, client)
@@ -123,7 +121,7 @@ func TestRegister(t *testing.T) {
 	}{
 		{
 			name:   "remote server error",
-			error:  map[string]string{"error": "ACTIONERR-2", "message": "An error happened, please check later."},
+			error:  map[string]string{"error": "ACTIONERR-1", "message": "An error happened, please check later."},
 			status: 500,
 			body:   models.Account{Email: "fake@fake.com", Password: "some_value"},
 			dependent: func(ctx context.Context, in *pb.RegisterRequest, opts ...grpc.CallOption) (*pb.RegisterResponse, error) {
@@ -165,7 +163,7 @@ func TestRegister(t *testing.T) {
 
 	for _, tt := range tests {
 		w := httptest.NewRecorder()
-		c := mockPostTest(w, tt.body)
+		c := utils.MockPostTest(w, tt.body)
 		client := &MockAuthServiceClient{}
 		client.RegisterFunc = tt.dependent
 
@@ -188,25 +186,4 @@ func TestRegister(t *testing.T) {
 			}
 		}
 	}
-}
-
-func mockPostTest(w *httptest.ResponseRecorder, content interface{}) *gin.Context {
-	gin.SetMode(gin.TestMode)
-	ctx, _ := gin.CreateTestContext(w)
-	ctx.Request = &http.Request{
-		Header: make(http.Header),
-		URL:    &url.URL{},
-	}
-	ctx.Request.Method = "POST"
-
-	jsonbytes, err := json.Marshal(content)
-	if err != nil {
-		panic(err)
-	}
-	// the request body must be an io.ReadCloser
-	// the bytes buffer though doesn't implement io.Closer,
-	// so you wrap it in a no-op closer
-	ctx.Request.Body = io.NopCloser(bytes.NewBuffer(jsonbytes))
-
-	return ctx
 }
