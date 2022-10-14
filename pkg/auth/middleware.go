@@ -9,15 +9,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type AuthMiddlewareConfig struct {
+type Middleware struct {
 	svc *ServiceClient
 }
 
-func InitAuthMiddleware(svc *ServiceClient) AuthMiddlewareConfig {
-	return AuthMiddlewareConfig{svc}
+func InitAuthMiddleware(svc *ServiceClient) Middleware {
+	return Middleware{svc}
 }
 
-func (c *AuthMiddlewareConfig) AuthRequired(ctx *gin.Context) {
+func (c *Middleware) AuthRequired(ctx *gin.Context) {
 	authorization := ctx.Request.Header.Get("authorization")
 
 	if authorization == "" {
