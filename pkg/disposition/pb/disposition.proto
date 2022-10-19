@@ -1,15 +1,15 @@
 syntax = "proto3";
 
-package order;
+package disposition;
 
-option go_package = "./pkg/order/pb";
+option go_package = "./pkg/request/pb";
 
-service OrderService {
-  rpc CreateOrder(CreateOrderRequest) returns (CreateOrderResponse) {}
-  rpc GetOrder(GetOrderRequest) returns (GetOrderResponse) {}
+service DispositionService {
+  rpc CreateDisposition(CreateDispositionRequest) returns (CreateDispositionResponse) {}
+  rpc GetRequest(GetRequestRequest) returns (GetRequestResponse) {}
 }
 
-message CreateOrderRequest {
+message CreateDispositionRequest {
   string currency = 1;
   string description = 2;
   int64 customerId = 3;
@@ -17,13 +17,13 @@ message CreateOrderRequest {
   int64 createdBy = 5;
 }
 
-message CreateOrderResponse {
+message CreateDispositionResponse {
   int64 status = 1;
   string error = 2;
   int64 id = 3;
 }
 
-message OrderData {
+message DispositionData {
   int64 id = 1;
   string description = 2;
   int64 invoiceNumber = 3;
@@ -37,12 +37,12 @@ message OrderData {
   string deletedAt = 11;
 }
 
-message GetOrderRequest {
+message GetRequestRequest {
   int64 id = 1;
 }
 
-message GetOrderResponse {
+message GetRequestResponse {
   string error = 1;
   int64 id = 2;
-  OrderData data = 3;
+  DispositionData data = 3;
 }

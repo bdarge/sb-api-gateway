@@ -1,4 +1,4 @@
-package order
+package request
 
 import (
 	"github.com/bdarge/sb-api-gateway/pkg/auth"
@@ -13,20 +13,20 @@ func RegisterRoutes(router *gin.RouterGroup, c *config.Config, authSvc *auth.Ser
 		Client: InitServiceClient(c),
 	}
 
-	routes := router.Group("/order")
+	routes := router.Group("/request")
 	{
 		routes.Use(a.AuthRequired)
-		routes.POST("/", svc.CreateOrder)
-		routes.GET("/", svc.GetOrder)
+		routes.POST("/", svc.CreateRequest)
+		routes.GET("/", svc.GetRequest)
 	}
 }
 
-// CreateOrder creates an order
-func (svc *ServiceClient) CreateOrder(ctx *gin.Context) {
-	CreateOrder(ctx, svc.Client)
+// CreateRequest creates an request
+func (svc *ServiceClient) CreateRequest(ctx *gin.Context) {
+	CreateRequest(ctx, svc.Client)
 }
 
-// GetOrder gets an order
-func (svc *ServiceClient) GetOrder(ctx *gin.Context) {
-	GetOrder(ctx, svc.Client)
+// GetRequest gets an request
+func (svc *ServiceClient) GetRequest(ctx *gin.Context) {
+	GetRequest(ctx, svc.Client)
 }

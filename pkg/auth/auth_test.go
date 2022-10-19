@@ -110,7 +110,7 @@ func TestLogin(t *testing.T) {
 }
 
 func TestRegister(t *testing.T) {
-	// tests cases
+	// test cases
 	tests := []struct {
 		name      string
 		error     map[string]string
