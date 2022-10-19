@@ -25,9 +25,11 @@ type Login struct {
 	Password string `json:"password"`
 }
 
-type Order struct {
+type Disposition struct {
 	Currency     string `json:"currency"`
-	Description  string `json:"description"`
-	DeliveryDate string `json:"deliveryDate"`
-	CustomerId   int64  `json:"customerId"`
+	Description  string `json:"description" binding:"required"`
+	DeliveryDate string `json:"deliveryDate" binding:"required"`
+	CustomerId   int64  `json:"customerId" binding:"required"`
+	CreatedBy    int64  `json:"createdBy" binding:"required"`
+	RequestType  string `json:"type" binding:"required"`
 }

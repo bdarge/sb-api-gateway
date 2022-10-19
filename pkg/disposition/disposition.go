@@ -1,23 +1,23 @@
-package request
+package disposition
 
 import (
 	"context"
+	"github.com/bdarge/sb-api-gateway/pkg/disposition/pb"
 	"github.com/bdarge/sb-api-gateway/pkg/models"
-	"github.com/bdarge/sb-api-gateway/pkg/request/pb"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
 )
 
-// CreateRequest
-// @Summary Create an request
+// CreateDisposition
+// @Summary Create a disposition
 // @ID create_request
-// @Param request body models.request true "Add request"
-// @Success 201 {object} pb.CreateRequestResponse
-// @Router /request [post]
+// @Param disposition body models.disposition true "Add disposition"
+// @Success 201 {object} pb.CreateDispositionResponse
+// @Router /disposition [post]
 // @Security ApiKeyAuth
-func CreateRequest(ctx *gin.Context, c pb.RequestServiceClient) {
-	order := models.Request{}
+func CreateDisposition(ctx *gin.Context, c pb.DispositionServiceClient) {
+	order := models.Disposition{}
 
 	if err := ctx.BindJSON(&order); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest,
@@ -27,7 +27,7 @@ func CreateRequest(ctx *gin.Context, c pb.RequestServiceClient) {
 		return
 	}
 
-	res, err := c.CreateRequest(context.Background(), &pb.CreateRequestRequest{
+	res, err := c.CreateDisposition(context.Background(), &pb.CreateDispositionRequest{
 		CustomerId:   order.CustomerId,
 		Description:  order.Description,
 		DeliveryDate: order.DeliveryDate,
@@ -45,17 +45,17 @@ func CreateRequest(ctx *gin.Context, c pb.RequestServiceClient) {
 	ctx.JSON(http.StatusCreated, &res)
 }
 
-// GetRequest
-// @Summary Get a request
+// GetDisposition
+// @Summary Get a disposition
 // @ID create_request
-// @Param request body models.request true "Add request"
-// @Success 200 {object} pb.GetRequestResponse
-// @Router /request [post]
+// @Param disposition body models.disposition true "Add disposition"
+// @Success 200 {object} pb.GetDispositionResponse
+// @Router /disposition [post]
 // @Security ApiKeyAuth
-func GetRequest(ctx *gin.Context, c pb.RequestServiceClient) {
+func GetDisposition(ctx *gin.Context, c pb.DispositionServiceClient) {
 	id, _ := strconv.ParseInt(ctx.Param("id"), 10, 32)
 
-	res, err := c.GetRequest(context.Background(), &pb.GetRequestRequest{
+	res, err := c.GetDisposition(context.Background(), &pb.GetDispositionRequest{
 		Id: int64(id),
 	})
 

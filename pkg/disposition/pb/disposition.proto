@@ -2,11 +2,11 @@ syntax = "proto3";
 
 package disposition;
 
-option go_package = "./pkg/request/pb";
+option go_package = "./pkg/disposition/pb";
 
 service DispositionService {
   rpc CreateDisposition(CreateDispositionRequest) returns (CreateDispositionResponse) {}
-  rpc GetRequest(GetRequestRequest) returns (GetRequestResponse) {}
+  rpc GetDisposition(GetDispositionRequest) returns (GetDispositionResponse) {}
 }
 
 message CreateDispositionRequest {
@@ -37,11 +37,11 @@ message DispositionData {
   string deletedAt = 11;
 }
 
-message GetRequestRequest {
+message GetDispositionRequest {
   int64 id = 1;
 }
 
-message GetRequestResponse {
+message GetDispositionResponse {
   string error = 1;
   int64 id = 2;
   DispositionData data = 3;

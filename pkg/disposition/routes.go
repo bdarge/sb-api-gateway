@@ -1,4 +1,4 @@
-package request
+package disposition
 
 import (
 	"github.com/bdarge/sb-api-gateway/pkg/auth"
@@ -13,20 +13,20 @@ func RegisterRoutes(router *gin.RouterGroup, c *config.Config, authSvc *auth.Ser
 		Client: InitServiceClient(c),
 	}
 
-	routes := router.Group("/request")
+	routes := router.Group("/disposition")
 	{
 		routes.Use(a.AuthRequired)
-		routes.POST("/", svc.CreateRequest)
-		routes.GET("/", svc.GetRequest)
+		routes.POST("/", svc.CreateDisposition)
+		routes.GET("/", svc.GetDisposition)
 	}
 }
 
-// CreateRequest creates an request
-func (svc *ServiceClient) CreateRequest(ctx *gin.Context) {
-	CreateRequest(ctx, svc.Client)
+// CreateDisposition creates an disposition
+func (svc *ServiceClient) CreateDisposition(ctx *gin.Context) {
+	CreateDisposition(ctx, svc.Client)
 }
 
-// GetRequest gets an request
-func (svc *ServiceClient) GetRequest(ctx *gin.Context) {
-	GetRequest(ctx, svc.Client)
+// GetDisposition gets an disposition
+func (svc *ServiceClient) GetDisposition(ctx *gin.Context) {
+	GetDisposition(ctx, svc.Client)
 }

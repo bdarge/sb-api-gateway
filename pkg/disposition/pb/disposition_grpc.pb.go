@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             v3.19.4
-// source: pkg/request/pb/disposition.proto
+// source: pkg/disposition/pb/disposition.proto
 
 package pb
 
@@ -23,7 +23,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DispositionServiceClient interface {
 	CreateDisposition(ctx context.Context, in *CreateDispositionRequest, opts ...grpc.CallOption) (*CreateDispositionResponse, error)
-	GetRequest(ctx context.Context, in *GetRequestRequest, opts ...grpc.CallOption) (*GetRequestResponse, error)
+	GetDisposition(ctx context.Context, in *GetDispositionRequest, opts ...grpc.CallOption) (*GetDispositionResponse, error)
 }
 
 type dispositionServiceClient struct {
@@ -43,9 +43,9 @@ func (c *dispositionServiceClient) CreateDisposition(ctx context.Context, in *Cr
 	return out, nil
 }
 
-func (c *dispositionServiceClient) GetRequest(ctx context.Context, in *GetRequestRequest, opts ...grpc.CallOption) (*GetRequestResponse, error) {
-	out := new(GetRequestResponse)
-	err := c.cc.Invoke(ctx, "/disposition.DispositionService/GetRequest", in, out, opts...)
+func (c *dispositionServiceClient) GetDisposition(ctx context.Context, in *GetDispositionRequest, opts ...grpc.CallOption) (*GetDispositionResponse, error) {
+	out := new(GetDispositionResponse)
+	err := c.cc.Invoke(ctx, "/disposition.DispositionService/GetDisposition", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func (c *dispositionServiceClient) GetRequest(ctx context.Context, in *GetReques
 // for forward compatibility
 type DispositionServiceServer interface {
 	CreateDisposition(context.Context, *CreateDispositionRequest) (*CreateDispositionResponse, error)
-	GetRequest(context.Context, *GetRequestRequest) (*GetRequestResponse, error)
+	GetDisposition(context.Context, *GetDispositionRequest) (*GetDispositionResponse, error)
 	mustEmbedUnimplementedDispositionServiceServer()
 }
 
@@ -68,8 +68,8 @@ type UnimplementedDispositionServiceServer struct {
 func (UnimplementedDispositionServiceServer) CreateDisposition(context.Context, *CreateDispositionRequest) (*CreateDispositionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateDisposition not implemented")
 }
-func (UnimplementedDispositionServiceServer) GetRequest(context.Context, *GetRequestRequest) (*GetRequestResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetRequest not implemented")
+func (UnimplementedDispositionServiceServer) GetDisposition(context.Context, *GetDispositionRequest) (*GetDispositionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDisposition not implemented")
 }
 func (UnimplementedDispositionServiceServer) mustEmbedUnimplementedDispositionServiceServer() {}
 
@@ -102,20 +102,20 @@ func _DispositionService_CreateDisposition_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
-func _DispositionService_GetRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetRequestRequest)
+func _DispositionService_GetDisposition_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDispositionRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(DispositionServiceServer).GetRequest(ctx, in)
+		return srv.(DispositionServiceServer).GetDisposition(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/disposition.DispositionService/GetRequest",
+		FullMethod: "/disposition.DispositionService/GetDisposition",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DispositionServiceServer).GetRequest(ctx, req.(*GetRequestRequest))
+		return srv.(DispositionServiceServer).GetDisposition(ctx, req.(*GetDispositionRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -132,10 +132,10 @@ var DispositionService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _DispositionService_CreateDisposition_Handler,
 		},
 		{
-			MethodName: "GetRequest",
-			Handler:    _DispositionService_GetRequest_Handler,
+			MethodName: "GetDisposition",
+			Handler:    _DispositionService_GetDisposition_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "pkg/request/pb/disposition.proto",
+	Metadata: "pkg/disposition/pb/disposition.proto",
 }
