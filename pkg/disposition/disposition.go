@@ -2,9 +2,11 @@ package disposition
 
 import (
 	"context"
+	"errors"
 	"github.com/bdarge/sb-api-gateway/pkg/disposition/pb"
 	"github.com/bdarge/sb-api-gateway/pkg/models"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"net/http"
 	"strconv"
 )
@@ -17,21 +19,26 @@ import (
 // @Router /disposition [post]
 // @Security ApiKeyAuth
 func CreateDisposition(ctx *gin.Context, c pb.DispositionServiceClient) {
-	order := models.Disposition{}
+	disposition := models.Disposition{}
 
-	if err := ctx.BindJSON(&order); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest,
-			gin.H{
-				"error":   "VALIDATEERR-1",
-				"message": "Invalid inputs. Please check your inputs"})
+	if err := ctx.BindJSON(&disposition); err != nil {
+		var ve validator.ValidationErrors
+		if errors.As(err, &ve) {
+			out := make([]models.ErrorMsg, len(ve))
+			for i, fe := range ve {
+				out[i] = models.ErrorMsg{Field: fe.Field(), Message: models.GetErrorMsg(fe)}
+			}
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"errors": out})
+		}
 		return
 	}
 
 	res, err := c.CreateDisposition(context.Background(), &pb.CreateDispositionRequest{
-		CustomerId:   order.CustomerId,
-		Description:  order.Description,
-		DeliveryDate: order.DeliveryDate,
-		CreatedBy:    order.CreatedBy,
+		CustomerId:   disposition.CustomerId,
+		Description:  disposition.Description,
+		DeliveryDate: disposition.DeliveryDate,
+		CreatedBy:    disposition.CreatedBy,
+		RequestType:  disposition.RequestType,
 	})
 
 	if err != nil {
