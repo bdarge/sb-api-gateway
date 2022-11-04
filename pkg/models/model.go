@@ -20,12 +20,12 @@ type LoginResponse struct {
 type Account struct {
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required"`
-}
+} // @name Account
 
 type Login struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
-}
+} // @name Login
 
 type Disposition struct {
 	Currency     string `json:"currency"`
@@ -33,8 +33,8 @@ type Disposition struct {
 	DeliveryDate string `json:"deliveryDate" binding:"required"`
 	CustomerId   int64  `json:"customerId" binding:"required"`
 	CreatedBy    int64  `json:"createdBy" binding:"required"`
-	RequestType  string `json:"type" binding:"required,oneof=order quote"`
-}
+	RequestType  string `json:"requestType" binding:"required,oneof=order quote"`
+} // @name Disposition
 
 type ErrorMsg struct {
 	Field   string `json:"field"`
@@ -65,3 +65,42 @@ func GetErrorMsg(fe validator.FieldError) string {
 	}
 	return "Unknown error"
 }
+
+type DispositionResponse struct {
+	ID int64 `json:"id"`
+} //@name DispositionResponse
+
+// swagger:parameters get_disposition
+type _ struct {
+	// The ID of a disposition
+	// in:path
+	ID string `json:"id"`
+}
+
+// swagger:parameters get_dispositions
+type _ struct {
+	// Page
+	// in:query
+	Page int
+	// Limit (max 100)
+	// in:query
+	Limit int
+	// in:query
+	RequestTye string
+}
+
+type Dispositions struct {
+	Total int           `json:"total" format:"int64"`
+	Page  int           `json:"page"  format:"int64"`
+	Limit int           `json:"limit" format:"int64"`
+	Data  []Disposition `json:"data"`
+} // @name Dispositions
+
+type ErrorResponse struct {
+	Error   string `json:"error""`
+	Message string `json:"message""`
+} // @name ErrorResponse
+
+type ErrorResponse400 struct {
+	Errors []ErrorMsg `json:"errors""`
+} // @name ErrorResponse400

@@ -13,20 +13,26 @@ func RegisterRoutes(router *gin.RouterGroup, c *config.Config, authSvc *auth.Ser
 		Client: InitServiceClient(c),
 	}
 
-	routes := router.Group("/disposition")
+	routes := router.Group("/pb")
 	{
 		routes.Use(a.AuthRequired)
 		routes.POST("/", svc.CreateDisposition)
-		routes.GET("/", svc.GetDisposition)
+		routes.GET("/:id", svc.GetDisposition)
+		routes.GET("/", svc.GetDispositions)
 	}
 }
 
-// CreateDisposition creates an disposition
+// CreateDisposition creates a pb
 func (svc *ServiceClient) CreateDisposition(ctx *gin.Context) {
 	CreateDisposition(ctx, svc.Client)
 }
 
-// GetDisposition gets an disposition
+// GetDisposition gets a pb
 func (svc *ServiceClient) GetDisposition(ctx *gin.Context) {
 	GetDisposition(ctx, svc.Client)
+}
+
+// GetDispositions all dispositions
+func (svc *ServiceClient) GetDispositions(ctx *gin.Context) {
+	GetDispositions(ctx, svc.Client)
 }

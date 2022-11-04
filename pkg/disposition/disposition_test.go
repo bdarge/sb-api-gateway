@@ -7,9 +7,11 @@ import (
 	"github.com/bdarge/sb-api-gateway/pkg/disposition/pb"
 	"github.com/bdarge/sb-api-gateway/pkg/models"
 	"github.com/bdarge/sb-api-gateway/pkg/utils"
+	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
 	"io"
 	"net/http/httptest"
+	"net/url"
 	"reflect"
 	"testing"
 )
@@ -17,6 +19,7 @@ import (
 type MockRequestServiceClient struct {
 	CreateDispositionFunc func(ctx context.Context, in *pb.CreateDispositionRequest, opts ...grpc.CallOption) (*pb.CreateDispositionResponse, error)
 	GetDispositionFunc    func(ctx context.Context, in *pb.GetDispositionRequest, opts ...grpc.CallOption) (*pb.GetDispositionResponse, error)
+	GetDispositionsFunc   func(ctx context.Context, in *pb.GetDispositionsRequest, opts ...grpc.CallOption) (*pb.GetDispositionsResponse, error)
 }
 
 func (m MockRequestServiceClient) CreateDisposition(ctx context.Context, in *pb.CreateDispositionRequest, opts ...grpc.CallOption) (*pb.CreateDispositionResponse, error) {
@@ -27,6 +30,10 @@ func (m MockRequestServiceClient) GetDisposition(ctx context.Context, in *pb.Get
 	return m.GetDispositionFunc(ctx, in, opts...)
 }
 
+func (m MockRequestServiceClient) GetDispositions(ctx context.Context, in *pb.GetDispositionsRequest, opts ...grpc.CallOption) (*pb.GetDispositionsResponse, error) {
+	return m.GetDispositionsFunc(ctx, in, opts...)
+}
+
 func TestCreateDisposition(t *testing.T) {
 	// test cases
 	tests := []struct {
@@ -35,25 +42,23 @@ func TestCreateDisposition(t *testing.T) {
 		generalError map[string]string
 		status       int
 		order        models.Disposition
-		server       func(ctx context.Context, in *pb.CreateDispositionRequest, opts ...grpc.CallOption) (*pb.CreateDispositionResponse, error)
+		data         *pb.CreateDispositionResponse
 	}{
 		{
-			name:   "should create a disposition",
+			name:   "should create a request",
 			error:  nil,
 			order:  models.Disposition{Description: "motor", CreatedBy: 12341, CustomerId: 8983, DeliveryDate: "10/01/2022", RequestType: "order"},
 			status: 201,
-			server: func(ctx context.Context, in *pb.CreateDispositionRequest, opts ...grpc.CallOption) (*pb.CreateDispositionResponse, error) {
-				return &pb.CreateDispositionResponse{}, nil
-			},
+			data:   &pb.CreateDispositionResponse{},
 		},
 		{
-			name:   "should return bad disposition #1",
+			name:   "should return bad request #1",
 			error:  map[string][]models.ErrorMsg{"errors": {{Field: "Description", Message: "This field is required"}}},
 			order:  models.Disposition{CreatedBy: 12341, CustomerId: 8983, DeliveryDate: "10/01/2022", RequestType: "order"},
 			status: 400,
 		},
 		{
-			name:   "should return bad disposition #2",
+			name:   "should return bad request #2",
 			error:  map[string][]models.ErrorMsg{"errors": {{Field: "CreatedBy", Message: "This field is required"}}},
 			order:  models.Disposition{Description: "motor", CustomerId: 8983, DeliveryDate: "10/01/2022", RequestType: "order"},
 			status: 400,
@@ -63,16 +68,16 @@ func TestCreateDisposition(t *testing.T) {
 			generalError: map[string]string{"error": "ACTIONERR-1", "message": "An error happened, please check later."},
 			order:        models.Disposition{Description: "motor", CreatedBy: 12341, CustomerId: 8983, DeliveryDate: "10/01/2022", RequestType: "order"},
 			status:       500,
-			server: func(ctx context.Context, in *pb.CreateDispositionRequest, opts ...grpc.CallOption) (*pb.CreateDispositionResponse, error) {
-				return nil, errors.New("some disposition grpc error")
-			},
+			data:         nil,
+			//server: func(ctx context.Context, in *pb.CreateDispositionRequest, opts ...grpc.CallOption) (*pb.CreateDispositionResponse, error) {
+			//	return nil, errors.New("some pb grpc error")
+			//},
 		},
 		{
-			name:   "should return bad disposition #3",
+			name:   "should return bad request #3",
 			error:  map[string][]models.ErrorMsg{"errors": {{Field: "RequestType", Message: "Should be one of the following: 'order', or 'quote'"}}},
 			order:  models.Disposition{Description: "motor", CreatedBy: 12341, CustomerId: 8983, DeliveryDate: "10/01/2022", RequestType: "cat"},
 			status: 400,
-			server: nil,
 		},
 	}
 
@@ -80,7 +85,13 @@ func TestCreateDisposition(t *testing.T) {
 		w := httptest.NewRecorder()
 		c := utils.MockPostTest(w, tt.order)
 		client := &MockRequestServiceClient{}
-		client.CreateDispositionFunc = tt.server
+		client.CreateDispositionFunc = func(ctx context.Context, in *pb.CreateDispositionRequest, opts ...grpc.CallOption) (*pb.CreateDispositionResponse, error) {
+			if tt.status > 201 {
+				return nil, errors.New("some backend service grpc error")
+			} else {
+				return tt.data, nil
+			}
+		}
 		CreateDisposition(c, client)
 
 		if w.Code != tt.status {
@@ -115,5 +126,192 @@ func TestCreateDisposition(t *testing.T) {
 }
 
 func TestGetDisposition(t *testing.T) {
+	// test cases
+	tests := []struct {
+		name         string
+		error        map[string][]models.ErrorMsg
+		generalError map[string]string
+		data         *pb.DispositionData
+		status       int
+		params       []gin.Param
+	}{
+		{
+			name:  "should get a disposition",
+			error: nil,
+			params: []gin.Param{
+				{
+					Key:   "id",
+					Value: "37623",
+				},
+			},
+			status: 200,
+			data: &pb.DispositionData{
+				Description: "motor",
+				CustomerId:  43434,
+			},
+		},
+		{
+			name:         "should get dispositions",
+			generalError: map[string]string{"error": "ACTIONERR-1", "message": "An error happened, please check later."},
+			params: []gin.Param{
+				{
+					Key:   "id",
+					Value: "647364",
+				},
+			},
+			status: 500,
+		},
+	}
 
+	for _, tt := range tests {
+		w := httptest.NewRecorder()
+		client := &MockRequestServiceClient{}
+		client.GetDispositionFunc = func(ctx context.Context, in *pb.GetDispositionRequest, opts ...grpc.CallOption) (*pb.GetDispositionResponse, error) {
+			if tt.status > 200 {
+				return nil, errors.New("some backend service grpc error")
+			} else {
+				return &pb.GetDispositionResponse{
+					Data: tt.data,
+				}, nil
+			}
+		}
+		ctx := utils.GetTestGinContext(w)
+
+		utils.MockGetTest(ctx, tt.params, url.Values{})
+
+		GetDisposition(ctx, client)
+
+		if w.Code != tt.status {
+			b, _ := io.ReadAll(w.Body)
+			t.Error(tt.name, w.Code, string(b))
+			continue
+		}
+
+		if w.Code == 200 {
+			b, _ := io.ReadAll(w.Body)
+			d := &pb.DispositionData{}
+			err := json.Unmarshal(b, d)
+			if err != nil {
+				t.Error(tt.name, "test error", err)
+				continue
+			}
+			if !reflect.DeepEqual(d, tt.data) {
+				t.Error(tt.name, "data doesn't match,", string(b))
+			}
+		}
+
+		if w.Code > 200 {
+			b, _ := io.ReadAll(w.Body)
+			if tt.error != nil {
+				var targetedError map[string][]models.ErrorMsg
+				if err := json.Unmarshal(b, &targetedError); err != nil {
+					t.Error(tt.name, "invalid error type", string(b))
+				}
+				if !reflect.DeepEqual(targetedError, tt.error) {
+					t.Error(tt.name, "error doesn't match,", string(b))
+				}
+			} else if tt.generalError != nil {
+				var generalError map[string]string
+				if err := json.Unmarshal(b, &generalError); err != nil {
+					if err := json.Unmarshal(b, &generalError); err != nil {
+						t.Error(tt.name, "invalid error type", string(b))
+					}
+				}
+				if !reflect.DeepEqual(generalError, tt.generalError) {
+					t.Error(tt.name, "error doesn't match,", string(b))
+				}
+			}
+		}
+	}
+}
+
+func TestGetDispositions(t *testing.T) {
+	// test cases
+	tests := []struct {
+		name         string
+		error        map[string][]models.ErrorMsg
+		generalError map[string]string
+		data         *pb.GetDispositionsResponse
+		status       int
+		params       []gin.Param
+	}{
+		{
+			name:   "should get dispositions",
+			error:  nil,
+			params: nil,
+			status: 200,
+			data:   &pb.GetDispositionsResponse{Data: []*pb.DispositionData{{Description: "motor", RequestType: "order"}}},
+		},
+		{
+			name:  "should get dispositions by requestType if requestType is sent",
+			error: nil,
+			params: []gin.Param{
+				{
+					Key:   "requestType",
+					Value: "order",
+				},
+			},
+			status: 200,
+			data:   &pb.GetDispositionsResponse{Data: []*pb.DispositionData{{Description: "motor"}}},
+		},
+	}
+
+	for _, tt := range tests {
+		w := httptest.NewRecorder()
+		client := &MockRequestServiceClient{}
+		client.GetDispositionsFunc = func(ctx context.Context, in *pb.GetDispositionsRequest, opts ...grpc.CallOption) (*pb.GetDispositionsResponse, error) {
+			if tt.status > 200 {
+				return nil, errors.New("some backend service grpc error")
+			} else {
+				return tt.data, nil
+			}
+		}
+		ctx := utils.GetTestGinContext(w)
+
+		utils.MockGetTest(ctx, tt.params, url.Values{})
+
+		GetDispositions(ctx, client)
+
+		if w.Code != tt.status {
+			b, _ := io.ReadAll(w.Body)
+			t.Error(tt.name, w.Code, string(b))
+			continue
+		}
+
+		if w.Code == 200 {
+			b, _ := io.ReadAll(w.Body)
+			d := &pb.GetDispositionsResponse{}
+			err := json.Unmarshal(b, d)
+			if err != nil {
+				t.Error(tt.name, "test error", err)
+				continue
+			}
+			if !reflect.DeepEqual(d, tt.data) {
+				t.Error(tt.name, "data doesn't match,", string(b))
+			}
+		}
+
+		if w.Code > 200 {
+			b, _ := io.ReadAll(w.Body)
+			if tt.error != nil {
+				var targetedError map[string][]models.ErrorMsg
+				if err := json.Unmarshal(b, &targetedError); err != nil {
+					t.Error(tt.name, "invalid error type", string(b))
+				}
+				if !reflect.DeepEqual(targetedError, tt.error) {
+					t.Error(tt.name, "error doesn't match,", string(b))
+				}
+			} else if tt.generalError != nil {
+				var generalError map[string]string
+				if err := json.Unmarshal(b, &generalError); err != nil {
+					if err := json.Unmarshal(b, &generalError); err != nil {
+						t.Error(tt.name, "invalid error type", string(b))
+					}
+				}
+				if !reflect.DeepEqual(generalError, tt.generalError) {
+					t.Error(tt.name, "error doesn't match,", string(b))
+				}
+			}
+		}
+	}
 }

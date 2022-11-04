@@ -7,6 +7,7 @@ option go_package = "./pkg/disposition/pb";
 service DispositionService {
   rpc CreateDisposition(CreateDispositionRequest) returns (CreateDispositionResponse) {}
   rpc GetDisposition(GetDispositionRequest) returns (GetDispositionResponse) {}
+  rpc GetDispositions(GetDispositionsRequest) returns (GetDispositionsResponse) {}
 }
 
 message CreateDispositionRequest {
@@ -27,19 +28,32 @@ message CreateDispositionResponse {
 message DispositionData {
   int64 id = 1;
   string description = 2;
-  int64 invoiceNumber = 3;
-  int64 orderNumber = 4;
-  int64 currency = 5;
+  string invoiceNumber = 3;
+  string orderNumber = 4;
+  string currency = 5;
   int64 customerId = 6;
   int64 createdBy = 7;
   string deliveryDate = 8;
   string createdAt = 9;
   string updatedAt = 10;
   string deletedAt = 11;
+  string requestType = 12;
 }
 
 message GetDispositionRequest {
   int64 id = 1;
+}
+
+message GetDispositionsRequest {
+  string requestType = 1;
+}
+
+message GetDispositionsResponse {
+  string error = 1;
+  int64 total = 2;
+  int64 page = 3;
+  int64 limit = 4;
+  repeated DispositionData data = 5;
 }
 
 message GetDispositionResponse {
