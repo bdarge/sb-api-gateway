@@ -46,7 +46,7 @@ func Register(ctx *gin.Context, c pb.AuthServiceClient) {
 // @Summary Authenticate a user
 // @ID login
 // @Param login body models.Login true "Add login credentials"
-// @Success 200 {object} models.Account
+// @Success 200 {object} models.Login
 // @Router /auth/login [post]
 // @Security ApiKeyAuth
 func Login(ctx *gin.Context, c pb.AuthServiceClient) {
