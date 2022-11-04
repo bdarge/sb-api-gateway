@@ -1,21 +1,19 @@
 basePath: /v1
 definitions:
-  models.Account:
+  Account:
     properties:
       email:
         type: string
       password:
         type: string
+    required:
+    - email
+    - password
     type: object
-  models.Login:
+  Disposition:
     properties:
-      email:
-        type: string
-      password:
-        type: string
-    type: object
-  models.Order:
-    properties:
+      createdBy:
+        type: integer
       currency:
         type: string
       customerId:
@@ -24,15 +22,45 @@ definitions:
         type: string
       description:
         type: string
-    type: object
-  pb.CreateOrderResponse:
-    properties:
-      error:
+      requestType:
+        enum:
+        - order
+        - quote
         type: string
+    required:
+    - createdBy
+    - customerId
+    - deliveryDate
+    - description
+    - requestType
+    type: object
+  DispositionResponse:
+    properties:
       id:
+        type: string
+    type: object
+  Dispositions:
+    properties:
+      dispositions:
+        items:
+          $ref: '#/definitions/Disposition'
+        type: array
+      limit:
+        format: int64
         type: integer
-      status:
+      page:
+        format: int64
         type: integer
+      total:
+        format: int64
+        type: integer
+    type: object
+  Login:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
     type: object
 info:
   contact: {}
@@ -50,12 +78,12 @@ paths:
         name: login
         required: true
         schema:
-          $ref: '#/definitions/models.Login'
+          $ref: '#/definitions/Login'
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.Account'
+            $ref: '#/definitions/Login'
       security:
       - ApiKeyAuth: []
       summary: Authenticate a user
@@ -68,31 +96,65 @@ paths:
         name: register
         required: true
         schema:
-          $ref: '#/definitions/models.Account'
+          $ref: '#/definitions/Account'
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.Account'
+            $ref: '#/definitions/Account'
       summary: Register a user
-  /order:
-    post:
-      operationId: create_order
+  /disposition:
+    get:
+      operationId: get_dispositions
       parameters:
-      - description: Order
-        in: body
-        name: order
-        required: true
-        schema:
-          $ref: '#/definitions/models.Order'
+      - description: Page
+        in: query
+        name: page
+        type: integer
+      - description: Limit (max 100)
+        in: query
+        name: limit
+        type: integer
+      - description: pass nothing, 'order' or 'quote'
+        in: query
+        name: requestType
+        type: string
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/pb.CreateOrderResponse'
+            $ref: '#/definitions/Dispositions'
       security:
       - ApiKeyAuth: []
-      summary: Create an order
+      summary: Get dispositions
+    post:
+      operationId: create_disposition
+      parameters:
+      - description: Add dispositions
+        in: body
+        name: disposition
+        required: true
+        schema:
+          $ref: '#/definitions/Disposition'
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/DispositionResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Create a disposition, an order or a quote
+  /disposition/{id}:
+    get:
+      operationId: get_disposition
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/Disposition'
+      security:
+      - ApiKeyAuth: []
+      summary: Get disposition
 securityDefinitions:
   ApiKeyAuth:
     in: header

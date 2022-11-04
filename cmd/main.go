@@ -4,7 +4,7 @@ import (
 	_ "github.com/bdarge/sb-api-gateway/cmd/docs"
 	"github.com/bdarge/sb-api-gateway/pkg/auth"
 	"github.com/bdarge/sb-api-gateway/pkg/config"
-	"github.com/bdarge/sb-api-gateway/pkg/order"
+	"github.com/bdarge/sb-api-gateway/pkg/disposition"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -58,7 +58,7 @@ func main() {
 	v1 := router.Group("/v1")
 	{
 		authSvc := *auth.RegisterRoutes(v1, &conf)
-		order.RegisterRoutes(v1, &conf, &authSvc)
+		disposition.RegisterRoutes(v1, &conf, &authSvc)
 	}
 
 	router.Run(conf.Port)

@@ -33,7 +33,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Login"
+                            "$ref": "#/definitions/Login"
                         }
                     }
                 ],
@@ -41,7 +41,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.Account"
+                            "$ref": "#/definitions/Login"
                         }
                     }
                 }
@@ -58,7 +58,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Account"
+                            "$ref": "#/definitions/Account"
                         }
                     }
                 ],
@@ -66,37 +66,93 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.Account"
+                            "$ref": "#/definitions/Account"
                         }
                     }
                 }
             }
         },
-        "/order": {
+        "/disposition": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "summary": "Get dispositions",
+                "operationId": "get_dispositions",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Page",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limit (max 100)",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "pass nothing, 'order' or 'quote'",
+                        "name": "requestType",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/Dispositions"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
                         "ApiKeyAuth": []
                     }
                 ],
-                "summary": "Create an order",
-                "operationId": "create_order",
+                "summary": "Create a disposition, an order or a quote",
+                "operationId": "create_disposition",
                 "parameters": [
                     {
-                        "description": "Order",
-                        "name": "order",
+                        "description": "Add dispositions",
+                        "name": "disposition",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/models.Order"
+                            "$ref": "#/definitions/Disposition"
                         }
                     }
                 ],
                 "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/DispositionResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/disposition/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "summary": "Get disposition",
+                "operationId": "get_disposition",
+                "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/pb.CreateOrderResponse"
+                            "$ref": "#/definitions/Disposition"
                         }
                     }
                 }
@@ -104,8 +160,12 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "models.Account": {
+        "Account": {
             "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
             "properties": {
                 "email": {
                     "type": "string"
@@ -115,20 +175,19 @@ const docTemplate = `{
                 }
             }
         },
-        "models.Login": {
+        "Disposition": {
             "type": "object",
+            "required": [
+                "createdBy",
+                "customerId",
+                "deliveryDate",
+                "description",
+                "requestType"
+            ],
             "properties": {
-                "email": {
-                    "type": "string"
+                "createdBy": {
+                    "type": "integer"
                 },
-                "password": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.Order": {
-            "type": "object",
-            "properties": {
                 "currency": {
                     "type": "string"
                 },
@@ -140,20 +199,55 @@ const docTemplate = `{
                 },
                 "description": {
                     "type": "string"
+                },
+                "requestType": {
+                    "type": "string",
+                    "enum": [
+                        "order",
+                        "quote"
+                    ]
                 }
             }
         },
-        "pb.CreateOrderResponse": {
+        "DispositionResponse": {
             "type": "object",
             "properties": {
-                "error": {
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "Dispositions": {
+            "type": "object",
+            "properties": {
+                "dispositions": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/Disposition"
+                    }
+                },
+                "limit": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "page": {
+                    "type": "integer",
+                    "format": "int64"
+                },
+                "total": {
+                    "type": "integer",
+                    "format": "int64"
+                }
+            }
+        },
+        "Login": {
+            "type": "object",
+            "properties": {
+                "email": {
                     "type": "string"
                 },
-                "id": {
-                    "type": "integer"
-                },
-                "status": {
-                    "type": "integer"
+                "password": {
+                    "type": "string"
                 }
             }
         }
