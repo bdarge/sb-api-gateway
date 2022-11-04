@@ -24,6 +24,7 @@ const _ = grpc.SupportPackageIsVersion7
 type DispositionServiceClient interface {
 	CreateDisposition(ctx context.Context, in *CreateDispositionRequest, opts ...grpc.CallOption) (*CreateDispositionResponse, error)
 	GetDisposition(ctx context.Context, in *GetDispositionRequest, opts ...grpc.CallOption) (*GetDispositionResponse, error)
+	GetDispositions(ctx context.Context, in *GetDispositionsRequest, opts ...grpc.CallOption) (*GetDispositionsResponse, error)
 }
 
 type dispositionServiceClient struct {
@@ -52,12 +53,22 @@ func (c *dispositionServiceClient) GetDisposition(ctx context.Context, in *GetDi
 	return out, nil
 }
 
+func (c *dispositionServiceClient) GetDispositions(ctx context.Context, in *GetDispositionsRequest, opts ...grpc.CallOption) (*GetDispositionsResponse, error) {
+	out := new(GetDispositionsResponse)
+	err := c.cc.Invoke(ctx, "/disposition.DispositionService/GetDispositions", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DispositionServiceServer is the server API for DispositionService service.
 // All implementations must embed UnimplementedDispositionServiceServer
 // for forward compatibility
 type DispositionServiceServer interface {
 	CreateDisposition(context.Context, *CreateDispositionRequest) (*CreateDispositionResponse, error)
 	GetDisposition(context.Context, *GetDispositionRequest) (*GetDispositionResponse, error)
+	GetDispositions(context.Context, *GetDispositionsRequest) (*GetDispositionsResponse, error)
 	mustEmbedUnimplementedDispositionServiceServer()
 }
 
@@ -70,6 +81,9 @@ func (UnimplementedDispositionServiceServer) CreateDisposition(context.Context, 
 }
 func (UnimplementedDispositionServiceServer) GetDisposition(context.Context, *GetDispositionRequest) (*GetDispositionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetDisposition not implemented")
+}
+func (UnimplementedDispositionServiceServer) GetDispositions(context.Context, *GetDispositionsRequest) (*GetDispositionsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetDispositions not implemented")
 }
 func (UnimplementedDispositionServiceServer) mustEmbedUnimplementedDispositionServiceServer() {}
 
@@ -120,6 +134,24 @@ func _DispositionService_GetDisposition_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DispositionService_GetDispositions_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetDispositionsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DispositionServiceServer).GetDispositions(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/disposition.DispositionService/GetDispositions",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DispositionServiceServer).GetDispositions(ctx, req.(*GetDispositionsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // DispositionService_ServiceDesc is the grpc.ServiceDesc for DispositionService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -134,6 +166,10 @@ var DispositionService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetDisposition",
 			Handler:    _DispositionService_GetDisposition_Handler,
+		},
+		{
+			MethodName: "GetDispositions",
+			Handler:    _DispositionService_GetDispositions_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
