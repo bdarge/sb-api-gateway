@@ -10,13 +10,19 @@ import (
 	"net/url"
 )
 
-func MockPostTest(w *httptest.ResponseRecorder, content interface{}) *gin.Context {
+func GetTestGinContext(w *httptest.ResponseRecorder) *gin.Context {
 	gin.SetMode(gin.TestMode)
 	ctx, _ := gin.CreateTestContext(w)
 	ctx.Request = &http.Request{
 		Header: make(http.Header),
 		URL:    &url.URL{},
 	}
+
+	return ctx
+}
+
+func MockPostTest(w *httptest.ResponseRecorder, content interface{}) *gin.Context {
+	ctx := GetTestGinContext(w)
 	ctx.Request.Method = "POST"
 
 	jsonbytes, err := json.Marshal(content)
@@ -29,4 +35,18 @@ func MockPostTest(w *httptest.ResponseRecorder, content interface{}) *gin.Contex
 	ctx.Request.Body = io.NopCloser(bytes.NewBuffer(jsonbytes))
 
 	return ctx
+}
+
+func MockGetTest(ctx *gin.Context, params gin.Params, u url.Values) {
+	ctx.Request.Method = "GET"
+	ctx.Request.Header.Set("Content-Type", "application/json")
+
+	u.Add("skip", "5")
+	u.Add("limit", "10")
+
+	// set path params
+	ctx.Params = params
+
+	//set query params
+	ctx.Request.URL.RawQuery = u.Encode()
 }
