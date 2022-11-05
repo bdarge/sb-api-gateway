@@ -57,7 +57,8 @@ message GetDispositionsResponse {
 }
 
 message GetDispositionResponse {
-  string error = 1;
-  int64 id = 2;
-  DispositionData data = 3;
+  int64 status = 1;
+  string error = 2;
+  int64 id = 3;
+  DispositionData data = 4;
 }
