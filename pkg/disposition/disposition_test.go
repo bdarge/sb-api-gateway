@@ -9,11 +9,13 @@ import (
 	"github.com/bdarge/sb-api-gateway/pkg/utils"
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/timestamppb"
 	"io"
 	"net/http/httptest"
 	"net/url"
 	"reflect"
 	"testing"
+	"time"
 )
 
 type MockRequestServiceClient struct {
@@ -45,38 +47,41 @@ func TestCreateDisposition(t *testing.T) {
 		data         *pb.CreateDispositionResponse
 	}{
 		{
-			name:   "should create a request",
-			error:  nil,
-			order:  models.Disposition{Description: "motor", CreatedBy: 12341, CustomerId: 8983, DeliveryDate: "10/01/2022", RequestType: "order"},
+			name:  "should create a request",
+			error: nil,
+			order: models.Disposition{Description: "motor", CreatedBy: 12341, CustomerId: 8983,
+				DeliveryDate: time.Now().Add(time.Hour * 24 * 7 * time.Duration(10)), RequestType: "order"},
 			status: 201,
 			data:   &pb.CreateDispositionResponse{},
 		},
 		{
-			name:   "should return bad request #1",
-			error:  map[string][]models.ErrorMsg{"errors": {{Field: "Description", Message: "This field is required"}}},
-			order:  models.Disposition{CreatedBy: 12341, CustomerId: 8983, DeliveryDate: "10/01/2022", RequestType: "order"},
+			name:  "should return bad request #1",
+			error: map[string][]models.ErrorMsg{"errors": {{Field: "Description", Message: "This field is required"}}},
+			order: models.Disposition{CreatedBy: 12341, CustomerId: 8983,
+				DeliveryDate: time.Now().Add(time.Hour * 24 * 7 * time.Duration(10)),
+				RequestType:  "order"},
 			status: 400,
 		},
 		{
-			name:   "should return bad request #2",
-			error:  map[string][]models.ErrorMsg{"errors": {{Field: "CreatedBy", Message: "This field is required"}}},
-			order:  models.Disposition{Description: "motor", CustomerId: 8983, DeliveryDate: "10/01/2022", RequestType: "order"},
+			name:  "should return bad request #2",
+			error: map[string][]models.ErrorMsg{"errors": {{Field: "CreatedBy", Message: "This field is required"}}},
+			order: models.Disposition{Description: "motor", CustomerId: 8983,
+				DeliveryDate: time.Now().Add(time.Hour * 24 * 7 * time.Duration(10)), RequestType: "order"},
 			status: 400,
 		},
 		{
 			name:         "should return a general error when server failed to create a disposition",
 			generalError: map[string]string{"error": "ACTIONERR-1", "message": "An error happened, please check later."},
-			order:        models.Disposition{Description: "motor", CreatedBy: 12341, CustomerId: 8983, DeliveryDate: "10/01/2022", RequestType: "order"},
-			status:       500,
-			data:         nil,
-			//server: func(ctx context.Context, in *pb.CreateDispositionRequest, opts ...grpc.CallOption) (*pb.CreateDispositionResponse, error) {
-			//	return nil, errors.New("some pb grpc error")
-			//},
+			order: models.Disposition{Description: "motor", CreatedBy: 12341, CustomerId: 8983,
+				DeliveryDate: time.Now().Add(time.Hour * 24 * 7 * time.Duration(10)), RequestType: "order"},
+			status: 500,
+			data:   nil,
 		},
 		{
-			name:   "should return bad request #3",
-			error:  map[string][]models.ErrorMsg{"errors": {{Field: "RequestType", Message: "Should be one of the following: 'order', or 'quote'"}}},
-			order:  models.Disposition{Description: "motor", CreatedBy: 12341, CustomerId: 8983, DeliveryDate: "10/01/2022", RequestType: "cat"},
+			name:  "should return bad request #3",
+			error: map[string][]models.ErrorMsg{"errors": {{Field: "RequestType", Message: "Should be one of the following: 'order', or 'quote'"}}},
+			order: models.Disposition{Description: "motor", CreatedBy: 12341, CustomerId: 8983,
+				DeliveryDate: time.Now().Add(time.Hour * 24 * 7 * time.Duration(10)), RequestType: "cat"},
 			status: 400,
 		},
 	}
@@ -226,11 +231,13 @@ func TestGetDisposition(t *testing.T) {
 }
 
 func TestGetDispositions(t *testing.T) {
+	now := time.Now()
 	// test cases
 	tests := []struct {
 		name         string
 		error        map[string][]models.ErrorMsg
 		generalError map[string]string
+		responseData models.Dispositions
 		data         *pb.GetDispositionsResponse
 		status       int
 		params       []gin.Param
@@ -240,7 +247,25 @@ func TestGetDispositions(t *testing.T) {
 			error:  nil,
 			params: nil,
 			status: 200,
-			data:   &pb.GetDispositionsResponse{Data: []*pb.DispositionData{{Description: "motor", RequestType: "order"}}},
+			responseData: models.Dispositions{Limit: 10, Page: 1, Total: 1,
+				Data: []models.Disposition{
+					{
+						Model: models.Model{ID: 3562,
+							CreatedAt: now.UTC(),
+							UpdatedAt: now.UTC(),
+							DeletedAt: time.Time{}.UTC()},
+						Description: "motor", RequestType: "order",
+						DeliveryDate: now.UTC().Add(time.Hour * 24 * 7 * time.Duration(10)),
+					},
+				},
+			},
+			data: &pb.GetDispositionsResponse{Limit: 10, Page: 1, Total: 1, Data: []*pb.DispositionData{{Id: 3562,
+				Description: "motor", RequestType: "order",
+				CreatedAt:    timestamppb.New(now),
+				UpdatedAt:    timestamppb.New(now),
+				DeletedAt:    timestamppb.New(time.Time{}),
+				DeliveryDate: timestamppb.New(now.UTC().Add(time.Hour * 24 * 7 * time.Duration(10))),
+			}}},
 		},
 		{
 			name:  "should get dispositions by requestType if requestType is sent",
@@ -252,7 +277,31 @@ func TestGetDispositions(t *testing.T) {
 				},
 			},
 			status: 200,
-			data:   &pb.GetDispositionsResponse{Data: []*pb.DispositionData{{Description: "motor"}}},
+			responseData: models.Dispositions{Limit: 10, Page: 1, Total: 1,
+				Data: []models.Disposition{
+					{
+						Model: models.Model{
+							ID:        9569,
+							CreatedAt: now.UTC(),
+							UpdatedAt: now.UTC(),
+							DeletedAt: time.Time{}.UTC(),
+						},
+						Description: "motor", RequestType: "queue",
+						DeliveryDate: now.UTC().Add(time.Hour * 24 * 7 * time.Duration(10)),
+					},
+				},
+			},
+			data: &pb.GetDispositionsResponse{
+				Limit: 10, Page: 1, Total: 1,
+				Data: []*pb.DispositionData{{
+					Id:          9569,
+					Description: "motor", RequestType: "queue",
+					CreatedAt:    timestamppb.New(now),
+					UpdatedAt:    timestamppb.New(now),
+					DeletedAt:    timestamppb.New(time.Time{}),
+					DeliveryDate: timestamppb.New(now.UTC().Add(time.Hour * 24 * 7 * time.Duration(10))),
+				}},
+			},
 		},
 	}
 
@@ -280,14 +329,14 @@ func TestGetDispositions(t *testing.T) {
 
 		if w.Code == 200 {
 			b, _ := io.ReadAll(w.Body)
-			d := &pb.GetDispositionsResponse{}
-			err := json.Unmarshal(b, d)
+			response := &models.Dispositions{}
+			err := json.Unmarshal(b, response)
 			if err != nil {
 				t.Error(tt.name, "test error", err)
 				continue
 			}
-			if !reflect.DeepEqual(d, tt.data) {
-				t.Error(tt.name, "data doesn't match,", string(b))
+			if !reflect.DeepEqual(*response, tt.responseData) {
+				t.Error(tt.name, "data doesn't match, actual:", *response, "Expected:", tt.responseData)
 			}
 		}
 

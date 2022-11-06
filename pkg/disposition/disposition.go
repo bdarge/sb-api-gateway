@@ -2,12 +2,15 @@ package disposition
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"github.com/bdarge/sb-api-gateway/pkg/disposition/pb"
 	"github.com/bdarge/sb-api-gateway/pkg/models"
-	"github.com/bdarge/sb-api-gateway/pkg/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/types/known/timestamppb"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -39,7 +42,7 @@ func CreateDisposition(ctx *gin.Context, c pb.DispositionServiceClient) {
 	res, err := c.CreateDisposition(context.Background(), &pb.CreateDispositionRequest{
 		CustomerId:   disposition.CustomerId,
 		Description:  disposition.Description,
-		DeliveryDate: disposition.DeliveryDate,
+		DeliveryDate: timestamppb.New(disposition.DeliveryDate),
 		CreatedBy:    disposition.CreatedBy,
 		RequestType:  disposition.RequestType,
 	})
@@ -103,14 +106,25 @@ func GetDispositions(ctx *gin.Context, c pb.DispositionServiceClient) {
 				"message": "An error happened, please check later."})
 		return
 	}
-	result := &models.Dispositions{}
-	err = utils.Recast(res, result)
+	// https://pkg.go.dev/google.golang.org/protobuf/encoding/protojson
+	message, err := protojson.Marshal(res)
 	if err != nil {
+		log.Printf("failed to cast type to bytes %v", err)
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError,
 			gin.H{
 				"error":   "ACTIONERR-1",
 				"message": "An error happened, please check later."})
 		return
 	}
-	ctx.JSON(http.StatusOK, &result)
+	var data models.Dispositions
+	err = json.Unmarshal(message, &data)
+	if err != nil {
+		log.Printf("failed to cast type, %v, %v", err, string(message))
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError,
+			gin.H{
+				"error":   "ACTIONERR-1",
+				"message": "An error happened, please check later."})
+		return
+	}
+	ctx.JSON(http.StatusOK, data)
 }
