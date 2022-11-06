@@ -13,7 +13,7 @@ func RegisterRoutes(router *gin.RouterGroup, c *config.Config, authSvc *auth.Ser
 		Client: InitServiceClient(c),
 	}
 
-	routes := router.Group("/pb")
+	routes := router.Group("/disposition")
 	{
 		routes.Use(a.AuthRequired)
 		routes.POST("/", svc.CreateDisposition)
