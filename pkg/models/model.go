@@ -116,7 +116,7 @@ type ErrorResponse400 struct {
 
 type Customer struct {
 	Model
-	Email        string        `gorm:"column:email" json:"email"`
-	Name         string        `gorm:"column:name" json:"name"`
-	Dispositions []Disposition `gorm:"null" json:"dispositions"`
+	Email        string        `json:"email"`
+	Name         string        `json:"name"`
+	Dispositions []Disposition `json:"dispositions"`
 }
