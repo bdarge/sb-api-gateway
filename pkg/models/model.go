@@ -4,7 +4,15 @@ import (
 	_ "github.com/bdarge/sb-api-gateway/cmd/docs"
 	"github.com/go-playground/validator/v10"
 	"strings"
+	"time"
 )
+
+type Model struct {
+	ID        int64     `json:"id,string,omitempty" format:"int64"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+	DeletedAt time.Time `json:"deletedAt"`
+}
 
 type Response struct {
 	Status string
@@ -28,12 +36,13 @@ type Login struct {
 } // @name Login
 
 type Disposition struct {
-	Currency     string `json:"currency"`
-	Description  string `json:"description" binding:"required"`
-	DeliveryDate string `json:"deliveryDate" binding:"required"`
-	CustomerId   int64  `json:"customerId" binding:"required"`
-	CreatedBy    int64  `json:"createdBy" binding:"required"`
-	RequestType  string `json:"requestType" binding:"required,oneof=order quote"`
+	Model
+	Currency     string    `json:"currency"`
+	Description  string    `json:"description" binding:"required"`
+	DeliveryDate time.Time `json:"deliveryDate" binding:"required"`
+	CustomerId   int64     `json:"customerId" binding:"required"`
+	CreatedBy    int64     `json:"createdBy" binding:"required"`
+	RequestType  string    `json:"requestType" binding:"required,oneof=order quote"`
 } // @name Disposition
 
 type ErrorMsg struct {
@@ -90,9 +99,9 @@ type _ struct {
 }
 
 type Dispositions struct {
-	Total int           `json:"total" format:"int64"`
-	Page  int           `json:"page"  format:"int64"`
-	Limit int           `json:"limit" format:"int64"`
+	Total int32         `json:"total" format:"int32"`
+	Page  int32         `json:"page"  format:"int32"`
+	Limit int32         `json:"limit" format:"int32"`
 	Data  []Disposition `json:"data"`
 } // @name Dispositions
 
@@ -104,3 +113,10 @@ type ErrorResponse struct {
 type ErrorResponse400 struct {
 	Errors []ErrorMsg `json:"errors""`
 } // @name ErrorResponse400
+
+type Customer struct {
+	Model
+	Email        string        `gorm:"column:email" json:"email"`
+	Name         string        `gorm:"column:name" json:"name"`
+	Dispositions []Disposition `gorm:"null" json:"dispositions"`
+}
