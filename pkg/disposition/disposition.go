@@ -19,7 +19,7 @@ import (
 // @Summary Create a disposition, an order or a quote
 // @ID create_disposition
 // @Param disposition body models.Disposition true "Add dispositions"
-// @Success 201 {object} models.DispositionResponse
+// @Success 201 {object} models.CreateResponse
 // @Router /disposition [post]
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
@@ -55,7 +55,7 @@ func CreateDisposition(ctx *gin.Context, c pb.DispositionServiceClient) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, &models.DispositionResponse{ID: res.Id})
+	ctx.JSON(http.StatusCreated, &models.CreateResponse{ID: res.Id})
 }
 
 // GetDisposition
@@ -66,7 +66,6 @@ func CreateDisposition(ctx *gin.Context, c pb.DispositionServiceClient) {
 // @Failure 500 {object} ErrorResponse
 // @Security ApiKeyAuth
 func GetDisposition(ctx *gin.Context, c pb.DispositionServiceClient) {
-
 	id, _ := strconv.ParseInt(ctx.Param("id"), 10, 32)
 
 	res, err := c.GetDisposition(context.Background(), &pb.GetDispositionRequest{

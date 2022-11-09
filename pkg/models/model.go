@@ -75,7 +75,7 @@ func GetErrorMsg(fe validator.FieldError) string {
 	return "Unknown error"
 }
 
-type DispositionResponse struct {
+type CreateResponse struct {
 	ID int64 `json:"id"`
 } //@name DispositionResponse
 
@@ -116,7 +116,7 @@ type ErrorResponse400 struct {
 
 type Customer struct {
 	Model
-	Email        string        `json:"email"`
-	Name         string        `json:"name"`
+	Email        string        `json:"email" binding:"required"`
+	Name         string        `json:"name" binding:"required"`
 	Dispositions []Disposition `json:"dispositions"`
 }

@@ -156,7 +156,7 @@ func TestGetDisposition(t *testing.T) {
 			},
 		},
 		{
-			name:         "should get dispositions",
+			name:         "should return an error",
 			generalError: map[string]string{"error": "ACTIONERR-1", "message": "An error happened, please check later."},
 			params: []gin.Param{
 				{
