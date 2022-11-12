@@ -8,7 +8,7 @@ import (
 )
 
 type Model struct {
-	ID        int64     `json:"id,string,omitempty" format:"int64"`
+	ID        int64     `json:"id,string"` // https://stackoverflow.com/a/21152548
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 	DeletedAt time.Time `json:"deletedAt"`
@@ -35,14 +35,23 @@ type Login struct {
 	Password string `json:"password"`
 } // @name Login
 
+type DispositionItem struct {
+	Model
+	Description string  `json:"description"`
+	Qty         int32   `json:"qty,string,omitempty"`
+	Unit        string  `json:"unit"`
+	UnitPrice   float64 `json:"unitPrice"`
+} // @name DispositionItem
+
 type Disposition struct {
 	Model
-	Currency     string    `json:"currency"`
-	Description  string    `json:"description" binding:"required"`
-	DeliveryDate time.Time `json:"deliveryDate" binding:"required"`
-	CustomerId   int64     `json:"customerId" binding:"required"`
-	CreatedBy    int64     `json:"createdBy" binding:"required"`
-	RequestType  string    `json:"requestType" binding:"required,oneof=order quote"`
+	Currency     string            `json:"currency"`
+	Description  string            `json:"description" binding:"required"`
+	DeliveryDate time.Time         `json:"deliveryDate" binding:"required"`
+	CustomerId   int64             `json:"customerId,string" binding:"required"`
+	CreatedBy    int64             `json:"createdBy,string" binding:"required"`
+	RequestType  string            `json:"requestType" binding:"required,oneof=order quote"`
+	Items        []DispositionItem `json:"Items"`
 } // @name Disposition
 
 type ErrorMsg struct {
