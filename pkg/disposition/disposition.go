@@ -80,7 +80,20 @@ func GetDisposition(ctx *gin.Context, c pb.DispositionServiceClient) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, res.Data)
+	message, err := protojson.Marshal(res.Data)
+	var data models.Disposition
+	err = json.Unmarshal(message, &data)
+
+	if err != nil {
+		log.Printf("failed to cast type, %v, %v", err, string(message))
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError,
+			gin.H{
+				"error":   "ACTIONERR-1",
+				"message": "An error happened, please check later."})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, data)
 }
 
 // GetDispositions

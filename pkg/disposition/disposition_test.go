@@ -49,8 +49,14 @@ func TestCreateDisposition(t *testing.T) {
 		{
 			name:  "should create a request",
 			error: nil,
-			order: models.Disposition{Description: "motor", CreatedBy: 12341, CustomerId: 8983,
-				DeliveryDate: time.Now().Add(time.Hour * 24 * 7 * time.Duration(10)), RequestType: "order"},
+			order: models.Disposition{
+				Description:  "motor",
+				CreatedBy:    12341,
+				CustomerId:   8983,
+				DeliveryDate: time.Now().Add(time.Hour * 24 * 7 * time.Duration(10)),
+				RequestType:  "order",
+				Items:        []models.DispositionItem{{Description: "motor key", Qty: 1, Unit: "birr", UnitPrice: 23.4}},
+			},
 			status: 201,
 			data:   &pb.CreateDispositionResponse{},
 		},
@@ -131,17 +137,19 @@ func TestCreateDisposition(t *testing.T) {
 }
 
 func TestGetDisposition(t *testing.T) {
+	now := time.Now()
 	// test cases
 	tests := []struct {
 		name         string
 		error        map[string][]models.ErrorMsg
 		generalError map[string]string
 		data         *pb.DispositionData
+		responseData models.Disposition
 		status       int
 		params       []gin.Param
 	}{
 		{
-			name:  "should get a disposition",
+			name:  "should get a disposition:",
 			error: nil,
 			params: []gin.Param{
 				{
@@ -150,13 +158,59 @@ func TestGetDisposition(t *testing.T) {
 				},
 			},
 			status: 200,
-			data: &pb.DispositionData{
+			responseData: models.Disposition{
+				Model: models.Model{
+					ID:        3562,
+					CreatedAt: now.UTC(),
+					UpdatedAt: now.UTC(),
+					DeletedAt: time.Time{}.UTC(),
+				},
+				CreatedBy:   30,
+				CustomerId:  2,
 				Description: "motor",
-				CustomerId:  43434,
+				RequestType: "order",
+				Items: []models.DispositionItem{
+					{
+						Model: models.Model{
+							ID:        1,
+							CreatedAt: now.UTC(),
+							UpdatedAt: now.UTC(),
+							DeletedAt: time.Time{}.UTC(),
+						},
+						Description: "motor key",
+						Qty:         1,
+						Unit:        "birr",
+						UnitPrice:   23.4,
+					},
+				},
+				DeliveryDate: now.UTC().Add(time.Hour * 24 * 7 * time.Duration(10)),
+			},
+			data: &pb.DispositionData{
+				Id:          3562,
+				Description: "motor",
+				RequestType: "order",
+				CreatedBy:   30,
+				CustomerId:  2,
+				CreatedAt:   timestamppb.New(now),
+				UpdatedAt:   timestamppb.New(now),
+				DeletedAt:   timestamppb.New(time.Time{}),
+				Items: []*pb.DispositionItem{
+					{
+						Id:          1,
+						Description: "motor key",
+						Qty:         1,
+						Unit:        "birr",
+						UnitPrice:   23.4,
+						CreatedAt:   timestamppb.New(now),
+						UpdatedAt:   timestamppb.New(now),
+						DeletedAt:   timestamppb.New(time.Time{}),
+					},
+				},
+				DeliveryDate: timestamppb.New(now.UTC().Add(time.Hour * 24 * 7 * time.Duration(10))),
 			},
 		},
 		{
-			name:         "should return an error",
+			name:         "should return an error:",
 			generalError: map[string]string{"error": "ACTIONERR-1", "message": "An error happened, please check later."},
 			params: []gin.Param{
 				{
@@ -194,14 +248,15 @@ func TestGetDisposition(t *testing.T) {
 
 		if w.Code == 200 {
 			b, _ := io.ReadAll(w.Body)
-			d := &pb.DispositionData{}
-			err := json.Unmarshal(b, d)
+			response := &models.Disposition{}
+			err := json.Unmarshal(b, response)
 			if err != nil {
 				t.Error(tt.name, "test error", err)
 				continue
 			}
-			if !reflect.DeepEqual(d, tt.data) {
-				t.Error(tt.name, "data doesn't match,", string(b))
+
+			if !reflect.DeepEqual(response, &tt.responseData) {
+				t.Error(tt.name, "data doesn't match,", "expected:", tt.responseData, "actual:", string(b))
 			}
 		}
 
@@ -247,25 +302,35 @@ func TestGetDispositions(t *testing.T) {
 			error:  nil,
 			params: nil,
 			status: 200,
-			responseData: models.Dispositions{Limit: 10, Page: 1, Total: 1,
+			responseData: models.Dispositions{
+				Limit: 10, Page: 1, Total: 1,
 				Data: []models.Disposition{
 					{
-						Model: models.Model{ID: 3562,
+						Model: models.Model{
+							ID:        3562,
 							CreatedAt: now.UTC(),
 							UpdatedAt: now.UTC(),
-							DeletedAt: time.Time{}.UTC()},
-						Description: "motor", RequestType: "order",
+							DeletedAt: time.Time{}.UTC(),
+						},
+						Description:  "motor",
+						RequestType:  "order",
 						DeliveryDate: now.UTC().Add(time.Hour * 24 * 7 * time.Duration(10)),
 					},
 				},
 			},
-			data: &pb.GetDispositionsResponse{Limit: 10, Page: 1, Total: 1, Data: []*pb.DispositionData{{Id: 3562,
-				Description: "motor", RequestType: "order",
-				CreatedAt:    timestamppb.New(now),
-				UpdatedAt:    timestamppb.New(now),
-				DeletedAt:    timestamppb.New(time.Time{}),
-				DeliveryDate: timestamppb.New(now.UTC().Add(time.Hour * 24 * 7 * time.Duration(10))),
-			}}},
+			data: &pb.GetDispositionsResponse{
+				Limit: 10, Page: 1, Total: 1,
+				Data: []*pb.DispositionData{
+					{
+						Id:           3562,
+						Description:  "motor",
+						RequestType:  "order",
+						CreatedAt:    timestamppb.New(now),
+						UpdatedAt:    timestamppb.New(now),
+						DeletedAt:    timestamppb.New(time.Time{}),
+						DeliveryDate: timestamppb.New(now.UTC().Add(time.Hour * 24 * 7 * time.Duration(10))),
+					},
+				}},
 		},
 		{
 			name:  "should get dispositions by requestType if requestType is sent",

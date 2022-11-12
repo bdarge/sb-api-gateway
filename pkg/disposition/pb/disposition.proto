@@ -27,6 +27,17 @@ message CreateDispositionResponse {
   int64 id = 3;
 }
 
+message DispositionItem {
+  int64 id = 1;
+  string description = 2;
+  float unitPrice = 3;
+  string unit = 4;
+  int64 qty =5;
+  google.protobuf.Timestamp createdAt = 6;
+  google.protobuf.Timestamp updatedAt = 7;
+  google.protobuf.Timestamp deletedAt = 8;
+}
+
 message DispositionData {
   int64 id = 1;
   string description = 2;
@@ -40,6 +51,7 @@ message DispositionData {
   google.protobuf.Timestamp updatedAt = 10;
   google.protobuf.Timestamp deletedAt = 11;
   string requestType = 12;
+  repeated DispositionItem items = 13;
 }
 
 message GetDispositionRequest {
