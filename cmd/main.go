@@ -4,6 +4,7 @@ import (
 	_ "github.com/bdarge/sb-api-gateway/cmd/docs"
 	"github.com/bdarge/sb-api-gateway/pkg/auth"
 	"github.com/bdarge/sb-api-gateway/pkg/config"
+	"github.com/bdarge/sb-api-gateway/pkg/customer"
 	"github.com/bdarge/sb-api-gateway/pkg/disposition"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -59,6 +60,7 @@ func main() {
 	{
 		authSvc := *auth.RegisterRoutes(v1, &conf)
 		disposition.RegisterRoutes(v1, &conf, &authSvc)
+		customer.RegisterRoutes(v1, &conf, &authSvc)
 	}
 
 	router.Run(conf.Port)

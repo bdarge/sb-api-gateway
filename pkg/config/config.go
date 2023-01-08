@@ -7,11 +7,11 @@ type Config struct {
 	AuthSvcUrl string `mapstructure:"AUTH_SVC_URL"`
 	ApiSvcUrl  string `mapstructure:"API_SVC_URL"`
 	// base url
-	BaseUrl string `mapstructure:"base_url"`
+	BaseUrl string `mapstructure:"BASE_URL"`
 }
 
 func LoadConfig() (c Config, err error) {
-	viper.AddConfigPath("./pkg/config/envs")
+	viper.AddConfigPath("./envs")
 	viper.SetConfigName("dev")
 	viper.SetConfigType("env")
 

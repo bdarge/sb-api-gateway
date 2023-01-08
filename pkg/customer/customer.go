@@ -3,10 +3,10 @@ package customer
 import (
 	"context"
 	"errors"
-	"github.com/bdarge/sb-api-gateway/pkg/customer/pb"
 	"github.com/bdarge/sb-api-gateway/pkg/models"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -20,7 +20,7 @@ import (
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Security ApiKeyAuth
-func CreateCustomer(ctx *gin.Context, client pb.CustomerServiceClient) {
+func CreateCustomer(ctx *gin.Context, client CustomerServiceClient) {
 	disposition := models.Customer{}
 
 	if err := ctx.BindJSON(&disposition); err != nil {
@@ -35,12 +35,13 @@ func CreateCustomer(ctx *gin.Context, client pb.CustomerServiceClient) {
 		return
 	}
 
-	res, err := client.CreateCustomer(context.Background(), &pb.CreateCustomerRequest{
+	res, err := client.CreateCustomer(context.Background(), &CreateCustomerRequest{
 		Name:  disposition.Name,
 		Email: disposition.Email,
 	})
 
 	if err != nil {
+		log.Printf("error creating a cutomer: %v", err)
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError,
 			gin.H{
 				"error":   "ACTIONERR-1",
@@ -58,14 +59,15 @@ func CreateCustomer(ctx *gin.Context, client pb.CustomerServiceClient) {
 // @Router /customer/{id} [Get]
 // @Failure 500 {object} ErrorResponse
 // @Security ApiKeyAuth
-func GetCustomer(ctx *gin.Context, client pb.CustomerServiceClient) {
+func GetCustomer(ctx *gin.Context, client CustomerServiceClient) {
 	id, _ := strconv.ParseInt(ctx.Param("id"), 10, 32)
 
-	res, err := client.GetCustomer(context.Background(), &pb.GetCustomerRequest{
+	res, err := client.GetCustomer(context.Background(), &GetCustomerRequest{
 		Id: id,
 	})
 
 	if err != nil {
+		log.Printf("error getting a cutomer: %v", err)
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError,
 			models.ErrorResponse{
 				Error:   "ACTIONERR-1",

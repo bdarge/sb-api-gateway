@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/bdarge/sb-api-gateway/pkg/customer/pb"
 	"github.com/bdarge/sb-api-gateway/pkg/models"
 	"github.com/bdarge/sb-api-gateway/pkg/utils"
 	"github.com/gin-gonic/gin"
@@ -17,15 +16,15 @@ import (
 )
 
 type MockRequestServiceClient struct {
-	CreatCustomerFunc func(ctx context.Context, in *pb.CreateCustomerRequest, opts ...grpc.CallOption) (*pb.CreateCustomerResponse, error)
-	GetCustomerFunc   func(ctx context.Context, in *pb.GetCustomerRequest, opts ...grpc.CallOption) (*pb.GetCustomerResponse, error)
+	CreatCustomerFunc func(ctx context.Context, in *CreateCustomerRequest, opts ...grpc.CallOption) (*CreateCustomerResponse, error)
+	GetCustomerFunc   func(ctx context.Context, in *GetCustomerRequest, opts ...grpc.CallOption) (*GetCustomerResponse, error)
 }
 
-func (m MockRequestServiceClient) CreateCustomer(ctx context.Context, in *pb.CreateCustomerRequest, opts ...grpc.CallOption) (*pb.CreateCustomerResponse, error) {
+func (m MockRequestServiceClient) CreateCustomer(ctx context.Context, in *CreateCustomerRequest, opts ...grpc.CallOption) (*CreateCustomerResponse, error) {
 	return m.CreatCustomerFunc(ctx, in, opts...)
 }
 
-func (m MockRequestServiceClient) GetCustomer(ctx context.Context, in *pb.GetCustomerRequest, opts ...grpc.CallOption) (*pb.GetCustomerResponse, error) {
+func (m MockRequestServiceClient) GetCustomer(ctx context.Context, in *GetCustomerRequest, opts ...grpc.CallOption) (*GetCustomerResponse, error) {
 	return m.GetCustomerFunc(ctx, in, opts...)
 }
 
@@ -37,7 +36,7 @@ func TestCreateCustomer(t *testing.T) {
 		generalError map[string]string
 		status       int
 		order        models.Customer
-		data         *pb.CreateCustomerResponse
+		data         *CreateCustomerResponse
 	}{
 		{
 			name:  "should create a customer",
@@ -47,7 +46,7 @@ func TestCreateCustomer(t *testing.T) {
 				Email: "fake@gmail.com",
 			},
 			status: 201,
-			data:   &pb.CreateCustomerResponse{},
+			data:   &CreateCustomerResponse{},
 		},
 		{
 			name:  "should return bad request #1",
@@ -78,7 +77,7 @@ func TestCreateCustomer(t *testing.T) {
 		w := httptest.NewRecorder()
 		c := utils.MockPostTest(w, tt.order)
 		client := &MockRequestServiceClient{}
-		client.CreatCustomerFunc = func(ctx context.Context, in *pb.CreateCustomerRequest, opts ...grpc.CallOption) (*pb.CreateCustomerResponse, error) {
+		client.CreatCustomerFunc = func(ctx context.Context, in *CreateCustomerRequest, opts ...grpc.CallOption) (*CreateCustomerResponse, error) {
 			if tt.status > 201 {
 				return nil, errors.New("some backend service grpc error")
 			} else {
@@ -126,7 +125,7 @@ func TestGetCustomer(t *testing.T) {
 		name         string
 		error        map[string][]models.ErrorMsg
 		generalError map[string]string
-		data         *pb.CustomerData
+		data         *CustomerData
 		status       int
 		params       []gin.Param
 	}{
@@ -140,7 +139,7 @@ func TestGetCustomer(t *testing.T) {
 				},
 			},
 			status: 200,
-			data: &pb.CustomerData{
+			data: &CustomerData{
 				Name:  "Mike Teddy",
 				Email: "fake@gmail.com",
 			},
@@ -161,11 +160,11 @@ func TestGetCustomer(t *testing.T) {
 	for _, tt := range tests {
 		w := httptest.NewRecorder()
 		client := &MockRequestServiceClient{}
-		client.GetCustomerFunc = func(ctx context.Context, in *pb.GetCustomerRequest, opts ...grpc.CallOption) (*pb.GetCustomerResponse, error) {
+		client.GetCustomerFunc = func(ctx context.Context, in *GetCustomerRequest, opts ...grpc.CallOption) (*GetCustomerResponse, error) {
 			if tt.status > 200 {
 				return nil, errors.New("some backend service grpc error")
 			} else {
-				return &pb.GetCustomerResponse{
+				return &GetCustomerResponse{
 					Data: tt.data,
 				}, nil
 			}
@@ -185,7 +184,7 @@ func TestGetCustomer(t *testing.T) {
 
 		if w.Code == 200 {
 			b, _ := io.ReadAll(w.Body)
-			d := &pb.CustomerData{}
+			d := &CustomerData{}
 			err := json.Unmarshal(b, d)
 			if err != nil {
 				t.Error(tt.name, "test error:", err)

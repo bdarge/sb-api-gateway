@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/bdarge/sb-api-gateway/pkg/disposition/pb"
 	"github.com/bdarge/sb-api-gateway/pkg/models"
 	"github.com/bdarge/sb-api-gateway/pkg/utils"
 	"github.com/gin-gonic/gin"
@@ -19,20 +18,20 @@ import (
 )
 
 type MockRequestServiceClient struct {
-	CreateDispositionFunc func(ctx context.Context, in *pb.CreateDispositionRequest, opts ...grpc.CallOption) (*pb.CreateDispositionResponse, error)
-	GetDispositionFunc    func(ctx context.Context, in *pb.GetDispositionRequest, opts ...grpc.CallOption) (*pb.GetDispositionResponse, error)
-	GetDispositionsFunc   func(ctx context.Context, in *pb.GetDispositionsRequest, opts ...grpc.CallOption) (*pb.GetDispositionsResponse, error)
+	CreateDispositionFunc func(ctx context.Context, in *CreateDispositionRequest, opts ...grpc.CallOption) (*CreateDispositionResponse, error)
+	GetDispositionFunc    func(ctx context.Context, in *GetDispositionRequest, opts ...grpc.CallOption) (*GetDispositionResponse, error)
+	GetDispositionsFunc   func(ctx context.Context, in *GetDispositionsRequest, opts ...grpc.CallOption) (*GetDispositionsResponse, error)
 }
 
-func (m MockRequestServiceClient) CreateDisposition(ctx context.Context, in *pb.CreateDispositionRequest, opts ...grpc.CallOption) (*pb.CreateDispositionResponse, error) {
+func (m MockRequestServiceClient) CreateDisposition(ctx context.Context, in *CreateDispositionRequest, opts ...grpc.CallOption) (*CreateDispositionResponse, error) {
 	return m.CreateDispositionFunc(ctx, in, opts...)
 }
 
-func (m MockRequestServiceClient) GetDisposition(ctx context.Context, in *pb.GetDispositionRequest, opts ...grpc.CallOption) (*pb.GetDispositionResponse, error) {
+func (m MockRequestServiceClient) GetDisposition(ctx context.Context, in *GetDispositionRequest, opts ...grpc.CallOption) (*GetDispositionResponse, error) {
 	return m.GetDispositionFunc(ctx, in, opts...)
 }
 
-func (m MockRequestServiceClient) GetDispositions(ctx context.Context, in *pb.GetDispositionsRequest, opts ...grpc.CallOption) (*pb.GetDispositionsResponse, error) {
+func (m MockRequestServiceClient) GetDispositions(ctx context.Context, in *GetDispositionsRequest, opts ...grpc.CallOption) (*GetDispositionsResponse, error) {
 	return m.GetDispositionsFunc(ctx, in, opts...)
 }
 
@@ -44,7 +43,7 @@ func TestCreateDisposition(t *testing.T) {
 		generalError map[string]string
 		status       int
 		order        models.Disposition
-		data         *pb.CreateDispositionResponse
+		data         *CreateDispositionResponse
 	}{
 		{
 			name:  "should create a request",
@@ -58,7 +57,7 @@ func TestCreateDisposition(t *testing.T) {
 				Items:        []models.DispositionItem{{Description: "motor key", Qty: 1, Unit: "birr", UnitPrice: 23.4}},
 			},
 			status: 201,
-			data:   &pb.CreateDispositionResponse{},
+			data:   &CreateDispositionResponse{},
 		},
 		{
 			name:  "should return bad request #1",
@@ -96,7 +95,7 @@ func TestCreateDisposition(t *testing.T) {
 		w := httptest.NewRecorder()
 		c := utils.MockPostTest(w, tt.order)
 		client := &MockRequestServiceClient{}
-		client.CreateDispositionFunc = func(ctx context.Context, in *pb.CreateDispositionRequest, opts ...grpc.CallOption) (*pb.CreateDispositionResponse, error) {
+		client.CreateDispositionFunc = func(ctx context.Context, in *CreateDispositionRequest, opts ...grpc.CallOption) (*CreateDispositionResponse, error) {
 			if tt.status > 201 {
 				return nil, errors.New("some backend service grpc error")
 			} else {
@@ -143,7 +142,7 @@ func TestGetDisposition(t *testing.T) {
 		name         string
 		error        map[string][]models.ErrorMsg
 		generalError map[string]string
-		data         *pb.DispositionData
+		data         *DispositionData
 		responseData models.Disposition
 		status       int
 		params       []gin.Param
@@ -185,7 +184,7 @@ func TestGetDisposition(t *testing.T) {
 				},
 				DeliveryDate: now.UTC().Add(time.Hour * 24 * 7 * time.Duration(10)),
 			},
-			data: &pb.DispositionData{
+			data: &DispositionData{
 				Id:          3562,
 				Description: "motor",
 				RequestType: "order",
@@ -194,7 +193,7 @@ func TestGetDisposition(t *testing.T) {
 				CreatedAt:   timestamppb.New(now),
 				UpdatedAt:   timestamppb.New(now),
 				DeletedAt:   timestamppb.New(time.Time{}),
-				Items: []*pb.DispositionItem{
+				Items: []*DispositionItem{
 					{
 						Id:          1,
 						Description: "motor key",
@@ -225,11 +224,11 @@ func TestGetDisposition(t *testing.T) {
 	for _, tt := range tests {
 		w := httptest.NewRecorder()
 		client := &MockRequestServiceClient{}
-		client.GetDispositionFunc = func(ctx context.Context, in *pb.GetDispositionRequest, opts ...grpc.CallOption) (*pb.GetDispositionResponse, error) {
+		client.GetDispositionFunc = func(ctx context.Context, in *GetDispositionRequest, opts ...grpc.CallOption) (*GetDispositionResponse, error) {
 			if tt.status > 200 {
 				return nil, errors.New("some backend service grpc error")
 			} else {
-				return &pb.GetDispositionResponse{
+				return &GetDispositionResponse{
 					Data: tt.data,
 				}, nil
 			}
@@ -293,7 +292,7 @@ func TestGetDispositions(t *testing.T) {
 		error        map[string][]models.ErrorMsg
 		generalError map[string]string
 		responseData models.Dispositions
-		data         *pb.GetDispositionsResponse
+		data         *GetDispositionsResponse
 		status       int
 		params       []gin.Param
 	}{
@@ -318,9 +317,9 @@ func TestGetDispositions(t *testing.T) {
 					},
 				},
 			},
-			data: &pb.GetDispositionsResponse{
+			data: &GetDispositionsResponse{
 				Limit: 10, Page: 1, Total: 1,
-				Data: []*pb.DispositionData{
+				Data: []*DispositionData{
 					{
 						Id:           3562,
 						Description:  "motor",
@@ -356,9 +355,9 @@ func TestGetDispositions(t *testing.T) {
 					},
 				},
 			},
-			data: &pb.GetDispositionsResponse{
+			data: &GetDispositionsResponse{
 				Limit: 10, Page: 1, Total: 1,
-				Data: []*pb.DispositionData{{
+				Data: []*DispositionData{{
 					Id:          9569,
 					Description: "motor", RequestType: "queue",
 					CreatedAt:    timestamppb.New(now),
@@ -373,7 +372,7 @@ func TestGetDispositions(t *testing.T) {
 	for _, tt := range tests {
 		w := httptest.NewRecorder()
 		client := &MockRequestServiceClient{}
-		client.GetDispositionsFunc = func(ctx context.Context, in *pb.GetDispositionsRequest, opts ...grpc.CallOption) (*pb.GetDispositionsResponse, error) {
+		client.GetDispositionsFunc = func(ctx context.Context, in *GetDispositionsRequest, opts ...grpc.CallOption) (*GetDispositionsResponse, error) {
 			if tt.status > 200 {
 				return nil, errors.New("some backend service grpc error")
 			} else {

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/bdarge/sb-api-gateway/pkg/auth/pb"
 	"github.com/bdarge/sb-api-gateway/pkg/models"
 	"github.com/bdarge/sb-api-gateway/pkg/utils"
 	"google.golang.org/grpc"
@@ -16,20 +15,20 @@ import (
 )
 
 type MockAuthServiceClient struct {
-	LoginFunc    func(ctx context.Context, in *pb.LoginRequest, opts ...grpc.CallOption) (*pb.LoginResponse, error)
-	RegisterFunc func(ctx context.Context, in *pb.RegisterRequest, opts ...grpc.CallOption) (*pb.RegisterResponse, error)
-	ValidateFunc func(ctx context.Context, in *pb.ValidateRequest, opts ...grpc.CallOption) (*pb.ValidateResponse, error)
+	LoginFunc    func(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
+	RegisterFunc func(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
+	ValidateFunc func(ctx context.Context, in *ValidateRequest, opts ...grpc.CallOption) (*ValidateResponse, error)
 }
 
-func (M MockAuthServiceClient) Register(ctx context.Context, in *pb.RegisterRequest, opts ...grpc.CallOption) (*pb.RegisterResponse, error) {
+func (M MockAuthServiceClient) Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error) {
 	return M.RegisterFunc(ctx, in, opts...)
 }
 
-func (M MockAuthServiceClient) Login(ctx context.Context, in *pb.LoginRequest, opts ...grpc.CallOption) (*pb.LoginResponse, error) {
+func (M MockAuthServiceClient) Login(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error) {
 	return M.LoginFunc(ctx, in, opts...)
 }
 
-func (M MockAuthServiceClient) Validate(ctx context.Context, in *pb.ValidateRequest, opts ...grpc.CallOption) (*pb.ValidateResponse, error) {
+func (M MockAuthServiceClient) Validate(ctx context.Context, in *ValidateRequest, opts ...grpc.CallOption) (*ValidateResponse, error) {
 	return M.ValidateFunc(ctx, in, opts...)
 }
 
@@ -40,7 +39,7 @@ func TestLogin(t *testing.T) {
 		error     string
 		status    int
 		body      models.Account
-		dependent func(ctx context.Context, in *pb.LoginRequest, opts ...grpc.CallOption) (*pb.LoginResponse, error)
+		dependent func(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 		result    map[string]string
 	}{
 		{
@@ -48,7 +47,7 @@ func TestLogin(t *testing.T) {
 			error:  "some error",
 			status: 500,
 			body:   models.Account{Email: "fake@fake.com", Password: "some_value"},
-			dependent: func(ctx context.Context, in *pb.LoginRequest, opts ...grpc.CallOption) (*pb.LoginResponse, error) {
+			dependent: func(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error) {
 				return nil, errors.New("some error")
 			},
 			result: nil,
@@ -58,7 +57,7 @@ func TestLogin(t *testing.T) {
 			error:  "some error",
 			status: 400,
 			body:   models.Account{Email: "", Password: "some_value"},
-			dependent: func(ctx context.Context, in *pb.LoginRequest, opts ...grpc.CallOption) (*pb.LoginResponse, error) {
+			dependent: func(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error) {
 				return nil, nil
 			},
 			result: nil,
@@ -68,7 +67,7 @@ func TestLogin(t *testing.T) {
 			error:  "some error",
 			status: 400,
 			body:   models.Account{Email: "etwyte", Password: "some_value"},
-			dependent: func(ctx context.Context, in *pb.LoginRequest, opts ...grpc.CallOption) (*pb.LoginResponse, error) {
+			dependent: func(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error) {
 				return nil, nil
 			},
 			result: nil,
@@ -78,8 +77,8 @@ func TestLogin(t *testing.T) {
 			error:  "",
 			status: 200,
 			body:   models.Account{Email: "fake@fake.com", Password: "some_value"},
-			dependent: func(ctx context.Context, in *pb.LoginRequest, opts ...grpc.CallOption) (*pb.LoginResponse, error) {
-				return &pb.LoginResponse{Token: "some_value"}, nil
+			dependent: func(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error) {
+				return &LoginResponse{Token: "some_value"}, nil
 			},
 			result: map[string]string{"token": "some_value"},
 		},
@@ -99,7 +98,7 @@ func TestLogin(t *testing.T) {
 		}
 		if tt.status == 200 {
 			b, _ := io.ReadAll(w.Body)
-			var jsonMap pb.LoginResponse
+			var jsonMap LoginResponse
 			json.Unmarshal([]byte(b), &jsonMap)
 
 			if jsonMap.Token != tt.result["token"] {
@@ -116,7 +115,7 @@ func TestRegister(t *testing.T) {
 		error     map[string]string
 		status    int
 		body      models.Account
-		dependent func(ctx context.Context, in *pb.RegisterRequest, opts ...grpc.CallOption) (*pb.RegisterResponse, error)
+		dependent func(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
 		result    map[string]string
 	}{
 		{
@@ -124,7 +123,7 @@ func TestRegister(t *testing.T) {
 			error:  map[string]string{"error": "ACTIONERR-1", "message": "An error happened, please check later."},
 			status: 500,
 			body:   models.Account{Email: "fake@fake.com", Password: "some_value"},
-			dependent: func(ctx context.Context, in *pb.RegisterRequest, opts ...grpc.CallOption) (*pb.RegisterResponse, error) {
+			dependent: func(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error) {
 				return nil, errors.New("some error")
 			},
 			result: nil,
@@ -134,7 +133,7 @@ func TestRegister(t *testing.T) {
 			error:  map[string]string{"error": "VALIDATEERR-1", "message": "Invalid inputs. Please check your inputs"},
 			status: 400,
 			body:   models.Account{Email: "", Password: "some_value"},
-			dependent: func(ctx context.Context, in *pb.RegisterRequest, opts ...grpc.CallOption) (*pb.RegisterResponse, error) {
+			dependent: func(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error) {
 				return nil, nil
 			},
 			result: nil,
@@ -144,7 +143,7 @@ func TestRegister(t *testing.T) {
 			error:  map[string]string{"error": "VALIDATEERR-1", "message": "Invalid inputs. Please check your inputs"},
 			status: 400,
 			body:   models.Account{Email: "etwyte", Password: "some_value"},
-			dependent: func(ctx context.Context, in *pb.RegisterRequest, opts ...grpc.CallOption) (*pb.RegisterResponse, error) {
+			dependent: func(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error) {
 				return nil, nil
 			},
 			result: nil,
@@ -154,8 +153,8 @@ func TestRegister(t *testing.T) {
 			error:  nil,
 			status: 201,
 			body:   models.Account{Email: "fake@fake.com", Password: "some_value"},
-			dependent: func(ctx context.Context, in *pb.RegisterRequest, opts ...grpc.CallOption) (*pb.RegisterResponse, error) {
-				return &pb.RegisterResponse{Status: http.StatusCreated}, nil
+			dependent: func(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error) {
+				return &RegisterResponse{Status: http.StatusCreated}, nil
 			},
 			result: map[string]string{"token": "some_value"},
 		},

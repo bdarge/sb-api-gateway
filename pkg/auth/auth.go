@@ -4,7 +4,6 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/bdarge/sb-api-gateway/pkg/auth/pb"
 	"github.com/bdarge/sb-api-gateway/pkg/models"
 	"github.com/gin-gonic/gin"
 )
@@ -15,7 +14,7 @@ import (
 // @Param register body models.Account true "Add account details"
 // @Success 200 {object} models.Account
 // @Router /auth/register [post]
-func Register(ctx *gin.Context, c pb.AuthServiceClient) {
+func Register(ctx *gin.Context, c AuthServiceClient) {
 	body := models.Account{}
 
 	if err := ctx.BindJSON(&body); err != nil {
@@ -26,7 +25,7 @@ func Register(ctx *gin.Context, c pb.AuthServiceClient) {
 		return
 	}
 
-	res, err := c.Register(context.Background(), &pb.RegisterRequest{
+	res, err := c.Register(context.Background(), &RegisterRequest{
 		Email:    body.Email,
 		Password: body.Password,
 	})
@@ -49,7 +48,7 @@ func Register(ctx *gin.Context, c pb.AuthServiceClient) {
 // @Success 200 {object} models.Login
 // @Router /auth/login [post]
 // @Security ApiKeyAuth
-func Login(ctx *gin.Context, c pb.AuthServiceClient) {
+func Login(ctx *gin.Context, c AuthServiceClient) {
 	b := models.Account{}
 
 	if err := ctx.ShouldBindJSON(&b); err != nil {
@@ -60,7 +59,7 @@ func Login(ctx *gin.Context, c pb.AuthServiceClient) {
 		return
 	}
 
-	res, err := c.Login(context.Background(), &pb.LoginRequest{
+	res, err := c.Login(context.Background(), &LoginRequest{
 		Email:    b.Email,
 		Password: b.Password,
 	})

@@ -5,20 +5,19 @@ import (
 	"log"
 
 	"github.com/bdarge/sb-api-gateway/pkg/config"
-	"github.com/bdarge/sb-api-gateway/pkg/disposition/pb"
 	"google.golang.org/grpc"
 )
 
 type ServiceClient struct {
-	Client pb.DispositionServiceClient
+	Client DispositionServiceClient
 }
 
-func InitServiceClient(c *config.Config) pb.DispositionServiceClient {
+func InitServiceClient(c *config.Config) DispositionServiceClient {
 	cc, err := grpc.Dial(c.ApiSvcUrl, grpc.WithTransportCredentials(insecure.NewCredentials()))
 
 	if err != nil {
 		log.Printf("couldn't connect to %s: %s", c.ApiSvcUrl, err)
 	}
 
-	return pb.NewDispositionServiceClient(cc)
+	return NewDispositionServiceClient(cc)
 }

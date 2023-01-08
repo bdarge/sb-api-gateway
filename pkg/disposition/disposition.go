@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/bdarge/sb-api-gateway/pkg/disposition/pb"
 	"github.com/bdarge/sb-api-gateway/pkg/models"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -24,7 +23,7 @@ import (
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Security ApiKeyAuth
-func CreateDisposition(ctx *gin.Context, c pb.DispositionServiceClient) {
+func CreateDisposition(ctx *gin.Context, c DispositionServiceClient) {
 	disposition := models.Disposition{}
 
 	if err := ctx.BindJSON(&disposition); err != nil {
@@ -39,7 +38,7 @@ func CreateDisposition(ctx *gin.Context, c pb.DispositionServiceClient) {
 		return
 	}
 
-	res, err := c.CreateDisposition(context.Background(), &pb.CreateDispositionRequest{
+	res, err := c.CreateDisposition(context.Background(), &CreateDispositionRequest{
 		CustomerId:   disposition.CustomerId,
 		Description:  disposition.Description,
 		DeliveryDate: timestamppb.New(disposition.DeliveryDate),
@@ -65,10 +64,10 @@ func CreateDisposition(ctx *gin.Context, c pb.DispositionServiceClient) {
 // @Router /disposition/{id} [Get]
 // @Failure 500 {object} ErrorResponse
 // @Security ApiKeyAuth
-func GetDisposition(ctx *gin.Context, c pb.DispositionServiceClient) {
+func GetDisposition(ctx *gin.Context, c DispositionServiceClient) {
 	id, _ := strconv.ParseInt(ctx.Param("id"), 10, 32)
 
-	res, err := c.GetDisposition(context.Background(), &pb.GetDispositionRequest{
+	res, err := c.GetDisposition(context.Background(), &GetDispositionRequest{
 		Id: id,
 	})
 
@@ -105,9 +104,9 @@ func GetDisposition(ctx *gin.Context, c pb.DispositionServiceClient) {
 // @Success 200 {object} models.Dispositions
 // @Router /disposition [Get]
 // @Security ApiKeyAuth
-func GetDispositions(ctx *gin.Context, c pb.DispositionServiceClient) {
+func GetDispositions(ctx *gin.Context, c DispositionServiceClient) {
 	var requestType = ctx.Param("requestTye")
-	res, err := c.GetDispositions(context.Background(), &pb.GetDispositionsRequest{
+	res, err := c.GetDispositions(context.Background(), &GetDispositionsRequest{
 		RequestType: requestType,
 	})
 
