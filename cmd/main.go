@@ -1,11 +1,11 @@
 package main
 
 import (
-	_ "github.com/bdarge/sb-api-gateway/cmd/docs"
-	"github.com/bdarge/sb-api-gateway/pkg/auth"
-	"github.com/bdarge/sb-api-gateway/pkg/config"
-	"github.com/bdarge/sb-api-gateway/pkg/customer"
-	"github.com/bdarge/sb-api-gateway/pkg/disposition"
+	_ "github.com/bdarge/api-gateway/cmd/docs"
+	"github.com/bdarge/api-gateway/pkg/auth"
+	"github.com/bdarge/api-gateway/pkg/config"
+	"github.com/bdarge/api-gateway/pkg/customer"
+	"github.com/bdarge/api-gateway/pkg/disposition"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"

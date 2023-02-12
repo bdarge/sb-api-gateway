@@ -1,23 +1,23 @@
 package auth
 
 import (
+	auth "github.com/bdarge/api-gateway/out/auth"
+	"github.com/bdarge/api-gateway/pkg/config"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"
-
-	"github.com/bdarge/sb-api-gateway/pkg/config"
-	"google.golang.org/grpc"
 )
 
 type ServiceClient struct {
-	Client AuthServiceClient
+	Client auth.AuthServiceClient
 }
 
-func InitServiceClient(c *config.Config) AuthServiceClient {
+func InitServiceClient(c *config.Config) auth.AuthServiceClient {
 	cc, err := grpc.Dial(c.AuthSvcUrl, grpc.WithTransportCredentials(insecure.NewCredentials()))
 
 	if err != nil {
 		log.Printf("Could not connect: %s, %v", c.AuthSvcUrl, err)
 	}
 
-	return NewAuthServiceClient(cc)
+	return auth.NewAuthServiceClient(cc)
 }

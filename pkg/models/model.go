@@ -1,14 +1,14 @@
 package models
 
 import (
-	_ "github.com/bdarge/sb-api-gateway/cmd/docs"
+	_ "github.com/bdarge/api-gateway/cmd/docs"
 	"github.com/go-playground/validator/v10"
 	"strings"
 	"time"
 )
 
 type Model struct {
-	ID        int64     `json:"id,string"` // https://stackoverflow.com/a/21152548
+	ID        uint32    `json:"id"` // https://stackoverflow.com/a/21152548
 	CreatedAt time.Time `json:"createdAt"`
 	UpdatedAt time.Time `json:"updatedAt"`
 	DeletedAt time.Time `json:"deletedAt"`
@@ -38,7 +38,7 @@ type Login struct {
 type DispositionItem struct {
 	Model
 	Description string  `json:"description"`
-	Qty         int32   `json:"qty,string,omitempty"`
+	Qty         uint32  `json:"qty"`
 	Unit        string  `json:"unit"`
 	UnitPrice   float64 `json:"unitPrice"`
 } // @name DispositionItem
@@ -48,10 +48,10 @@ type Disposition struct {
 	Currency     string            `json:"currency"`
 	Description  string            `json:"description" binding:"required"`
 	DeliveryDate time.Time         `json:"deliveryDate" binding:"required"`
-	CustomerId   int64             `json:"customerId,string" binding:"required"`
-	CreatedBy    int64             `json:"createdBy,string" binding:"required"`
+	CustomerId   uint32            `json:"customerId" binding:"required"`
+	CreatedBy    uint32            `json:"createdBy" binding:"required"`
 	RequestType  string            `json:"requestType" binding:"required,oneof=order quote"`
-	Items        []DispositionItem `json:"Items"`
+	Items        []DispositionItem `json:"items"`
 } // @name Disposition
 
 type ErrorMsg struct {
@@ -85,7 +85,7 @@ func GetErrorMsg(fe validator.FieldError) string {
 }
 
 type CreateResponse struct {
-	ID int64 `json:"id"`
+	ID uint32 `json:"id"`
 } //@name DispositionResponse
 
 // swagger:parameters get_disposition
@@ -96,15 +96,17 @@ type _ struct {
 }
 
 // swagger:parameters get_dispositions
-type _ struct {
+type DispositionsRequest struct {
 	// Page
 	// in:query
-	Page int
+	Page uint32 `json:"page"`
 	// Limit (max 100)
 	// in:query
-	Limit int
+	Limit uint32 `json:"limit"`
 	// in:query
-	RequestTye string
+	RequestType string `json:"requestType"`
+	// in:query
+	Search string `json:"search"`
 }
 
 type Dispositions struct {
@@ -115,12 +117,12 @@ type Dispositions struct {
 } // @name Dispositions
 
 type ErrorResponse struct {
-	Error   string `json:"error""`
-	Message string `json:"message""`
+	Error   string `json:"error"`
+	Message string `json:"message"`
 } // @name ErrorResponse
 
 type ErrorResponse400 struct {
-	Errors []ErrorMsg `json:"errors""`
+	Errors []ErrorMsg `json:"errors"`
 } // @name ErrorResponse400
 
 type Customer struct {

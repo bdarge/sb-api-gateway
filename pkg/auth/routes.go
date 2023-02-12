@@ -1,7 +1,7 @@
 package auth
 
 import (
-	"github.com/bdarge/sb-api-gateway/pkg/config"
+	"github.com/bdarge/api-gateway/pkg/config"
 	"github.com/gin-gonic/gin"
 )
 

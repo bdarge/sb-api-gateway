@@ -1,11 +1,11 @@
 package disposition
 
 import (
+	. "github.com/bdarge/api-gateway/out/disposition"
+	"github.com/bdarge/api-gateway/pkg/config"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"
-
-	"github.com/bdarge/sb-api-gateway/pkg/config"
-	"google.golang.org/grpc"
 )
 
 type ServiceClient struct {

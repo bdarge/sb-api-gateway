@@ -1,8 +1,8 @@
 package customer
 
 import (
-	"github.com/bdarge/sb-api-gateway/pkg/auth"
-	"github.com/bdarge/sb-api-gateway/pkg/config"
+	"github.com/bdarge/api-gateway/pkg/auth"
+	"github.com/bdarge/api-gateway/pkg/config"
 	"github.com/gin-gonic/gin"
 )
 

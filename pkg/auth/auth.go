@@ -2,10 +2,10 @@ package auth
 
 import (
 	"context"
-	"net/http"
-
-	"github.com/bdarge/sb-api-gateway/pkg/models"
+	. "github.com/bdarge/api-gateway/out/auth"
+	"github.com/bdarge/api-gateway/pkg/models"
 	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 // Register

@@ -2,11 +2,10 @@ package auth
 
 import (
 	"context"
+	auth "github.com/bdarge/api-gateway/out/auth"
+	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
-
-	"github.com/bdarge/sb-api-gateway/pkg/auth/pb"
-	"github.com/gin-gonic/gin"
 )
 
 type Middleware struct {
@@ -32,7 +31,7 @@ func (c *Middleware) AuthRequired(ctx *gin.Context) {
 		return
 	}
 
-	res, err := c.svc.Client.Validate(context.Background(), &pb.ValidateRequest{
+	res, err := c.svc.Client.Validate(context.Background(), &auth.ValidateRequest{
 		Token: token[1],
 	})
 

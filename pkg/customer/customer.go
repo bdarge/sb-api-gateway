@@ -3,7 +3,8 @@ package customer
 import (
 	"context"
 	"errors"
-	"github.com/bdarge/sb-api-gateway/pkg/models"
+	. "github.com/bdarge/api-gateway/out/customer"
+	"github.com/bdarge/api-gateway/pkg/models"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"log"
@@ -21,9 +22,9 @@ import (
 // @Failure 500 {object} ErrorResponse
 // @Security ApiKeyAuth
 func CreateCustomer(ctx *gin.Context, client CustomerServiceClient) {
-	disposition := models.Customer{}
+	customer := models.Customer{}
 
-	if err := ctx.BindJSON(&disposition); err != nil {
+	if err := ctx.BindJSON(&customer); err != nil {
 		var ve validator.ValidationErrors
 		if errors.As(err, &ve) {
 			out := make([]models.ErrorMsg, len(ve))
@@ -36,8 +37,8 @@ func CreateCustomer(ctx *gin.Context, client CustomerServiceClient) {
 	}
 
 	res, err := client.CreateCustomer(context.Background(), &CreateCustomerRequest{
-		Name:  disposition.Name,
-		Email: disposition.Email,
+		Name:  customer.Name,
+		Email: customer.Email,
 	})
 
 	if err != nil {
@@ -63,7 +64,7 @@ func GetCustomer(ctx *gin.Context, client CustomerServiceClient) {
 	id, _ := strconv.ParseInt(ctx.Param("id"), 10, 32)
 
 	res, err := client.GetCustomer(context.Background(), &GetCustomerRequest{
-		Id: id,
+		Id: uint32(id),
 	})
 
 	if err != nil {
