@@ -31,10 +31,14 @@ func Register(ctx *gin.Context, c AuthServiceClient) {
 	})
 
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError,
-			gin.H{
-				"error":   "ACTIONERR-1",
-				"message": "An error happened, please check later."})
+		if res.Status >= 400 {
+			ctx.AbortWithStatusJSON(int(res.Status), res.Error)
+		} else {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError,
+				gin.H{
+					"error":   "ACTIONERR-1",
+					"message": "An error happened, please check later."})
+		}
 		return
 	}
 
@@ -64,8 +68,12 @@ func Login(ctx *gin.Context, c AuthServiceClient) {
 		Password: b.Password,
 	})
 
-	if err != nil {
-		ctx.AbortWithError(http.StatusInternalServerError, err)
+	if err != nil || res.Status >= 400 {
+		if res.Status >= 400 {
+			ctx.AbortWithStatusJSON(int(res.Status), res.Error)
+		} else {
+			_ = ctx.AbortWithError(http.StatusInternalServerError, err)
+		}
 		return
 	}
 

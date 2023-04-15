@@ -5,7 +5,7 @@ import (
 	"github.com/bdarge/api-gateway/pkg/auth"
 	"github.com/bdarge/api-gateway/pkg/config"
 	"github.com/bdarge/api-gateway/pkg/customer"
-	"github.com/bdarge/api-gateway/pkg/disposition"
+	"github.com/bdarge/api-gateway/pkg/transaction"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
@@ -59,7 +59,7 @@ func main() {
 	v1 := router.Group("/v1")
 	{
 		authSvc := *auth.RegisterRoutes(v1, &conf)
-		disposition.RegisterRoutes(v1, &conf, &authSvc)
+		transaction.RegisterRoutes(v1, &conf, &authSvc)
 		customer.RegisterRoutes(v1, &conf, &authSvc)
 	}
 

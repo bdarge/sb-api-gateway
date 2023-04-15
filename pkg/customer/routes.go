@@ -18,6 +18,9 @@ func RegisterRoutes(router *gin.RouterGroup, c *config.Config, authSvc *auth.Ser
 		routes.Use(a.AuthRequired)
 		routes.POST("/", svc.CreateCustomer)
 		routes.GET("/:id", svc.GetCustomer)
+		routes.GET("", svc.GetCustomers)
+		routes.PATCH("/:id", svc.UpdateCustomer)
+		routes.DELETE("/:id", svc.DeleteCustomer)
 	}
 }
 
@@ -27,4 +30,16 @@ func (svc *ServiceClient) CreateCustomer(ctx *gin.Context) {
 
 func (svc *ServiceClient) GetCustomer(ctx *gin.Context) {
 	GetCustomer(ctx, svc.Client)
+}
+
+func (svc *ServiceClient) GetCustomers(ctx *gin.Context) {
+	GetCustomers(ctx, svc.Client)
+}
+
+func (svc *ServiceClient) UpdateCustomer(ctx *gin.Context) {
+	UpdateCustomer(ctx, svc.Client)
+}
+
+func (svc *ServiceClient) DeleteCustomer(ctx *gin.Context) {
+	DeleteCustomer(ctx, svc.Client)
 }

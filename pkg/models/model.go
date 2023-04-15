@@ -8,10 +8,10 @@ import (
 )
 
 type Model struct {
-	ID        uint32    `json:"id"` // https://stackoverflow.com/a/21152548
-	CreatedAt time.Time `json:"createdAt"`
-	UpdatedAt time.Time `json:"updatedAt"`
-	DeletedAt time.Time `json:"deletedAt"`
+	ID        uint32     `json:"id"` // https://stackoverflow.com/a/21152548
+	CreatedAt *time.Time `json:"createdAt"`
+	UpdatedAt *time.Time `json:"updatedAt"`
+	DeletedAt *time.Time `json:"deletedAt"`
 }
 
 type Response struct {
@@ -35,15 +35,15 @@ type Login struct {
 	Password string `json:"password"`
 } // @name Login
 
-type DispositionItem struct {
+type TransactionItem struct {
 	Model
 	Description string  `json:"description"`
 	Qty         uint32  `json:"qty"`
 	Unit        string  `json:"unit"`
 	UnitPrice   float64 `json:"unitPrice"`
-} // @name DispositionItem
+} // @name TransactionItem
 
-type Disposition struct {
+type NewTransaction struct {
 	Model
 	Currency     string            `json:"currency"`
 	Description  string            `json:"description" binding:"required"`
@@ -51,8 +51,31 @@ type Disposition struct {
 	CustomerId   uint32            `json:"customerId" binding:"required"`
 	CreatedBy    uint32            `json:"createdBy" binding:"required"`
 	RequestType  string            `json:"requestType" binding:"required,oneof=order quote"`
-	Items        []DispositionItem `json:"items"`
-} // @name Disposition
+	Items        []TransactionItem `json:"items"`
+} // @name Transaction
+
+// swagger:parameters update_transaction
+type UpdateTransaction struct {
+	ID           uint32     `json:"id"`
+	Currency     string     `json:"currency"`
+	Description  string     `json:"description"`
+	DeliveryDate *time.Time `json:"deliveryDate"`
+	CustomerId   uint32     `json:"customerId"`
+	CreatedBy    uint32     `json:"createdBy"`
+	RequestType  string     `json:"requestType" binding:"oneof=order quote ''"`
+}
+
+type Transaction struct {
+	Model
+	Currency     string            `json:"currency"`
+	Description  string            `json:"description" binding:"required"`
+	DeliveryDate time.Time         `json:"deliveryDate" binding:"required"`
+	CustomerId   uint32            `json:"customerId" binding:"required"`
+	CreatedBy    uint32            `json:"createdBy" binding:"required"`
+	RequestType  string            `json:"requestType" binding:"required,oneof=order quote"`
+	Customer     Customer          `json:"customer" binding:"not_required"`
+	Items        []TransactionItem `json:"items"`
+} // @name Transaction
 
 type ErrorMsg struct {
 	Field   string `json:"field"`
@@ -86,17 +109,17 @@ func GetErrorMsg(fe validator.FieldError) string {
 
 type CreateResponse struct {
 	ID uint32 `json:"id"`
-} //@name DispositionResponse
+} //@name TransactionResponse
 
-// swagger:parameters get_disposition
+// swagger:parameters get_transaction
 type _ struct {
-	// The ID of a disposition
+	// The ID of a transaction
 	// in:path
 	ID string `json:"id"`
 }
 
-// swagger:parameters get_dispositions
-type DispositionsRequest struct {
+// swagger:parameters get_transactions
+type TransactionsRequest struct {
 	// Page
 	// in:query
 	Page uint32 `json:"page"`
@@ -107,14 +130,41 @@ type DispositionsRequest struct {
 	RequestType string `json:"requestType"`
 	// in:query
 	Search string `json:"search"`
+	// in:query
+	SortProperty string `json:"sortProperty"`
+	// in:query
+	SortDirection string `json:"sortDirection"`
 }
 
-type Dispositions struct {
+type Transactions struct {
 	Total int32         `json:"total" format:"int32"`
 	Page  int32         `json:"page"  format:"int32"`
 	Limit int32         `json:"limit" format:"int32"`
-	Data  []Disposition `json:"data"`
-} // @name Dispositions
+	Data  []Transaction `json:"data"`
+} // @name Transactions
+
+// swagger:parameters get_customers
+type CustomersRequest struct {
+	// Page
+	// in:query
+	Page uint32 `json:"page"`
+	// Limit (max 100)
+	// in:query
+	Limit uint32 `json:"limit"`
+	// in:query
+	Search string `json:"search"`
+	// in:query
+	SortProperty string `json:"sortProperty"`
+	// in:query
+	SortDirection string `json:"sortDirection"`
+}
+
+type Customers struct {
+	Total int32      `json:"total" format:"int32"`
+	Page  int32      `json:"page"  format:"int32"`
+	Limit int32      `json:"limit" format:"int32"`
+	Data  []Customer `json:"data"`
+} // @name Customers
 
 type ErrorResponse struct {
 	Error   string `json:"error"`
@@ -127,7 +177,13 @@ type ErrorResponse400 struct {
 
 type Customer struct {
 	Model
-	Email        string        `json:"email" binding:"required"`
-	Name         string        `json:"name" binding:"required"`
-	Dispositions []Disposition `json:"dispositions"`
+	Email string `json:"email" binding:"required"`
+	Name  string `json:"name" binding:"required"`
+}
+
+// swagger:parameters update_customer
+type UpdateCustomer struct {
+	ID    uint32 `json:"id"`
+	Email string `json:"email"`
+	Name  string `json:"name"`
 }
