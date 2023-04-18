@@ -187,3 +187,19 @@ type UpdateCustomer struct {
 	Email string `json:"email"`
 	Name  string `json:"name"`
 }
+
+// User Model
+type User struct {
+	Model
+	UserName      string        `json:"username"`
+	HourlyRate    string        `json:"hourlyRate"`
+	BusinessName  string        `json:"businessName"`
+	Street        string        `json:"street"`
+	PostalCode    string        `json:"postalCode"`
+	City          string        `json:"city"`
+	Country       string        `json:"country"`
+	LandLinePhone string        `json:"landlinePhone"`
+	MobilePhone   string        `json:"mobilePhone"`
+	Vat           string        `json:"vat"`
+	Transactions  []Transaction `json:"transactions"`
+}
