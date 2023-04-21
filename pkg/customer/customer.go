@@ -208,8 +208,6 @@ func UpdateCustomer(ctx *gin.Context, c CustomerServiceClient) {
 		return
 	}
 
-	u.ID = uint32(id)
-
 	log.Printf("update customer")
 
 	inBytes, err := json.Marshal(u)
@@ -222,12 +220,12 @@ func UpdateCustomer(ctx *gin.Context, c CustomerServiceClient) {
 		return
 	}
 
-	var updateRequest UpdateCustomerRequest
+	var update UpdateCustomerData
 	log.Printf("stringfly data in bytes: %s", inBytes)
 
 	// ignore unknown fields
 	unMarshaller := &protojson.UnmarshalOptions{DiscardUnknown: true}
-	err = unMarshaller.Unmarshal(inBytes, &updateRequest)
+	err = unMarshaller.Unmarshal(inBytes, &update)
 
 	if err != nil {
 		log.Printf("Failed to unmarsha to proto type: %v", err)
@@ -237,9 +235,12 @@ func UpdateCustomer(ctx *gin.Context, c CustomerServiceClient) {
 				"message": "An error happened, please check later."})
 		return
 	}
-	log.Printf("mesage: %v", &updateRequest)
+	log.Printf("mesage: %v", &update)
 
-	res, err := c.UpdateCustomer(context.Background(), &updateRequest)
+	res, err := c.UpdateCustomer(context.Background(), &UpdateCustomerRequest{
+		Id:   uint32(id),
+		Data: &update,
+	})
 
 	if err != nil || res.Status >= 400 {
 		if res != nil && res.Status >= 400 {

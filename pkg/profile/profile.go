@@ -3,9 +3,11 @@ package profile
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	. "github.com/bdarge/api-gateway/out/profile"
 	"github.com/bdarge/api-gateway/pkg/models"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"google.golang.org/protobuf/encoding/protojson"
 	"log"
 	"net/http"
@@ -57,6 +59,98 @@ func GetUser(ctx *gin.Context, c ProfileServiceClient) {
 					Error:   "ACTIONERR-1",
 					Message: "An error happened, please check later."})
 		}
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response)
+}
+
+// UpdateUser
+// @Summary Update a user
+// @ID update_user
+// @Param user body models.UpdateUser true "Update user"
+// @Success 200 {object} models.User
+// @Router /user/{id} [Patch]
+// @Failure 500 {object} ErrorResponse
+// @Security ApiKeyAuth
+func UpdateUser(ctx *gin.Context, c ProfileServiceClient) {
+	log.Printf("update user")
+	id, _ := strconv.ParseInt(ctx.Param("id"), 10, 32)
+	u := models.UpdateUser{}
+
+	if err := ctx.BindJSON(&u); err != nil {
+		log.Printf("Error: %s", err)
+		var ve validator.ValidationErrors
+		if errors.As(err, &ve) { /**/
+			out := make([]models.ErrorMsg, len(ve))
+			for i, fe := range ve {
+				out[i] = models.ErrorMsg{Field: fe.Field(), Message: models.GetErrorMsg(fe)}
+			}
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse400{Errors: out})
+		} else {
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+				"error":   "ACTIONERR-1",
+				"message": err.Error(),
+			})
+		}
+		return
+	}
+
+	inBytes, err := json.Marshal(u)
+	if err != nil {
+		log.Printf("Failed to marshal update data: %v", err)
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError,
+			gin.H{
+				"error":   "ACTIONERR-1",
+				"message": "An error happened, please check later."})
+		return
+	}
+
+	var updateUserData UpdateUserData
+	log.Printf("stringfly data in bytes: %s", inBytes)
+
+	// ignore unknown fields
+	unMarshaller := &protojson.UnmarshalOptions{DiscardUnknown: true}
+	err = unMarshaller.Unmarshal(inBytes, &updateUserData)
+
+	if err != nil {
+		log.Printf("Failed to unmarsha to proto type: %v", err)
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError,
+			gin.H{
+				"error":   "ACTIONERR-1",
+				"message": "An error happened, please check later."})
+		return
+	}
+	log.Printf("mesage: %v", &updateUserData)
+
+	res, err := c.UpdateUser(context.Background(), &UpdateUserRequest{
+		Id:   uint32(id),
+		Data: &updateUserData,
+	})
+
+	if err != nil || res.Status >= 400 {
+		if res != nil && res.Status >= 400 {
+			ctx.AbortWithStatusJSON(int(res.Status),
+				models.ErrorResponse{
+					Error:   "ACTIONERR-2",
+					Message: res.Error})
+		} else {
+			log.Printf("Failed to updated user: %v", err)
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError,
+				models.ErrorResponse{
+					Error:   "ACTIONERR-1",
+					Message: "An error happened, please check later."})
+		}
+		return
+	}
+
+	response, err := convertToModel(res.Data)
+
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError,
+			gin.H{
+				"error":   "ACTIONERR-1",
+				"message": "An error happened, please check later."})
 		return
 	}
 

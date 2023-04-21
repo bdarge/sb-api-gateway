@@ -203,3 +203,16 @@ type User struct {
 	Vat           string        `json:"vat"`
 	Transactions  []Transaction `json:"transactions"`
 }
+
+// swagger:parameters update_user
+type UpdateUser struct {
+	ID            uint32 `json:"id"`
+	UserName      string `json:"username"`
+	BusinessName  string `json:"businessName"`
+	Street        string `json:"street"`
+	PostalCode    string `json:"postalCode"`
+	City          string `json:"city"`
+	Country       string `json:"country"`
+	LandLinePhone string `json:"landlinePhone"`
+	MobilePhone   string `json:"mobilePhone"`
+}

@@ -17,10 +17,16 @@ func RegisterRoutes(router *gin.RouterGroup, c *config.Config, authSvc *auth.Ser
 	{
 		routes.Use(a.AuthRequired)
 		routes.GET("/:id", svc.GetUser)
+		routes.PATCH("/:id", svc.UpdateUser)
 	}
 }
 
 // GetUser gets a user
 func (svc *ServiceClient) GetUser(ctx *gin.Context) {
 	GetUser(ctx, svc.Client)
+}
+
+// UpdateUser update a user
+func (svc *ServiceClient) UpdateUser(ctx *gin.Context) {
+	UpdateUser(ctx, svc.Client)
 }

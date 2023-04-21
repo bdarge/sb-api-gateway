@@ -276,8 +276,6 @@ func UpdateTransaction(ctx *gin.Context, c TransactionServiceClient) {
 		return
 	}
 
-	u.ID = uint32(id)
-
 	log.Printf("update transaction")
 
 	inBytes, err := json.Marshal(u)
@@ -290,12 +288,12 @@ func UpdateTransaction(ctx *gin.Context, c TransactionServiceClient) {
 		return
 	}
 
-	var data UpdateTransactionRequest
+	var update UpdateTransactionData
 	log.Printf("stringfly data in bytes: %s", inBytes)
 
 	// ignore unknown fields
 	unMarshaller := &protojson.UnmarshalOptions{DiscardUnknown: true}
-	err = unMarshaller.Unmarshal(inBytes, &data)
+	err = unMarshaller.Unmarshal(inBytes, &update)
 
 	if err != nil {
 		log.Printf("Error: %v", err)
@@ -305,9 +303,12 @@ func UpdateTransaction(ctx *gin.Context, c TransactionServiceClient) {
 				"message": "An error happened, please check later."})
 		return
 	}
-	log.Printf("mesage: %v", &data)
+	log.Printf("mesage: %v", &update)
 
-	res, err := c.UpdateTransaction(context.Background(), &data)
+	res, err := c.UpdateTransaction(context.Background(), &UpdateTransactionRequest{
+		Id:   uint32(id),
+		Data: &update,
+	})
 
 	if err != nil || res.Status >= 400 {
 		if res != nil && res.Status >= 400 {
