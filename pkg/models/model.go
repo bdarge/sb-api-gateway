@@ -188,6 +188,11 @@ type UpdateCustomer struct {
 	Name  string `json:"name"`
 }
 
+type Role struct {
+	ID   uint32 `json:"id"`
+	Name string `json:"name"`
+}
+
 // User Model
 type User struct {
 	Model
@@ -202,6 +207,7 @@ type User struct {
 	MobilePhone   string        `json:"mobilePhone"`
 	Vat           string        `json:"vat"`
 	Transactions  []Transaction `json:"transactions"`
+	Roles         []Role        `json:"roles"`
 }
 
 // swagger:parameters update_user
