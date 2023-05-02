@@ -193,21 +193,38 @@ type Role struct {
 	Name string `json:"name"`
 }
 
+// Address Model
+type Address struct {
+	Model
+	Street        string `json:"street"`
+	PostalCode    string `json:"postalCode"`
+	City          string `json:"city"`
+	State         string `json:"state"`
+	Country       string `json:"country"`
+	LandLinePhone string `json:"landlinePhone"`
+	MobilePhone   string `json:"mobilePhone"`
+	UserID        uint32 `json:"userId"`
+	BusinessID    uint32 `json:"businessId"`
+}
+
+// Business Model.
+type Business struct {
+	Model
+	Name       string  `json:"name"`
+	HourlyRate uint32  `gorm:"column:hourly_rate" json:"hourlyRate"`
+	Vat        uint32  `json:"vat"`
+	Address    Address `json:"address"`
+}
+
 // User Model
 type User struct {
 	Model
-	UserName      string        `json:"username"`
-	HourlyRate    string        `json:"hourlyRate"`
-	BusinessName  string        `json:"businessName"`
-	Street        string        `json:"street"`
-	PostalCode    string        `json:"postalCode"`
-	City          string        `json:"city"`
-	Country       string        `json:"country"`
-	LandLinePhone string        `json:"landlinePhone"`
-	MobilePhone   string        `json:"mobilePhone"`
-	Vat           string        `json:"vat"`
-	Transactions  []Transaction `json:"transactions"`
-	Roles         []Role        `json:"roles"`
+	Username     string        `json:"username"`
+	Address      Address       `json:"address"`
+	Transactions []Transaction `json:"transactions"`
+	Roles        []Role        `json:"roles"`
+	BusinessID   uint32        `json:"businessId"`
+	Business     Business      `json:"business"`
 }
 
 // swagger:parameters update_user

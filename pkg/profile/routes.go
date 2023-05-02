@@ -19,6 +19,12 @@ func RegisterRoutes(router *gin.RouterGroup, c *config.Config, authSvc *auth.Ser
 		routes.GET("/:id", svc.GetUser)
 		routes.PATCH("/:id", svc.UpdateUser)
 	}
+
+	businessRoutes := router.Group("/business")
+	{
+		businessRoutes.Use(a.AuthRequired)
+		businessRoutes.GET("/:id", svc.GetBusiness)
+	}
 }
 
 // GetUser gets a user
@@ -29,4 +35,9 @@ func (svc *ServiceClient) GetUser(ctx *gin.Context) {
 // UpdateUser update a user
 func (svc *ServiceClient) UpdateUser(ctx *gin.Context) {
 	UpdateUser(ctx, svc.Client)
+}
+
+// GetBusiness gets a business
+func (svc *ServiceClient) GetBusiness(ctx *gin.Context) {
+	GetBusiness(ctx, svc.Client)
 }

@@ -157,6 +157,65 @@ func UpdateUser(ctx *gin.Context, c ProfileServiceClient) {
 	ctx.JSON(http.StatusOK, response)
 }
 
+func GetBusiness(ctx *gin.Context, c ProfileServiceClient) {
+	id, _ := strconv.ParseInt(ctx.Param("id"), 10, 32)
+
+	res, err := c.GetBusiness(context.Background(), &GetBusinessRequest{
+		Id: uint32(id),
+	})
+
+	log.Printf("backend returned data: %v", res)
+
+	if err != nil || res.Status >= 400 {
+		if res.Status >= 400 {
+			ctx.AbortWithStatusJSON(int(res.Status),
+				models.ErrorResponse{
+					Error:   "ACTIONERR-2",
+					Message: res.Error})
+		} else {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError,
+				models.ErrorResponse{
+					Error:   "ACTIONERR-1",
+					Message: "An error happened, please check later."})
+		}
+		return
+	}
+
+	response, err := convertToBusinessModel(res.Data)
+
+	if err != nil || res.Status >= 400 {
+		if res.Status >= 400 {
+			ctx.AbortWithStatusJSON(int(res.Status),
+				models.ErrorResponse{
+					Error:   "ACTIONERR-2",
+					Message: res.Error})
+		} else {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError,
+				models.ErrorResponse{
+					Error:   "ACTIONERR-1",
+					Message: "An error happened, please check later."})
+		}
+		return
+	}
+
+	ctx.JSON(http.StatusOK, response)
+}
+
+func convertToBusinessModel(data *BusinessData) (*models.Business, error) {
+	message, err := protojson.Marshal(data)
+	log.Printf("message %s", message)
+
+	var d models.Business
+	err = json.Unmarshal(message, &d)
+
+	if err != nil {
+		log.Printf("failed to cast type, %v, %v", err, string(message))
+		return nil, err
+	}
+
+	return &d, nil
+}
+
 func convertToModel(data *UserData) (*models.User, error) {
 	message, err := protojson.Marshal(data)
 	log.Printf("message %s", message)
