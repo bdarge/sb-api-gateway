@@ -5,6 +5,7 @@ import (
 	. "github.com/bdarge/api-gateway/out/auth"
 	"github.com/bdarge/api-gateway/pkg/models"
 	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
 )
 
@@ -54,7 +55,7 @@ func Register(ctx *gin.Context, c AuthServiceClient) {
 // @Security ApiKeyAuth
 func Login(ctx *gin.Context, c AuthServiceClient) {
 	b := models.Account{}
-
+	log.Printf("Authenticate %v", ctx.Request.Body)
 	if err := ctx.ShouldBindJSON(&b); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest,
 			gin.H{
@@ -62,6 +63,8 @@ func Login(ctx *gin.Context, c AuthServiceClient) {
 				"message": "Invalid inputs. Please check your inputs"})
 		return
 	}
+
+	log.Printf("Request mapped, %v", b)
 
 	res, err := c.Login(context.Background(), &LoginRequest{
 		Email:    b.Email,

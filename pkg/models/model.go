@@ -196,24 +196,35 @@ type Role struct {
 // Address Model
 type Address struct {
 	Model
-	Street        string `json:"street"`
-	PostalCode    string `json:"postalCode"`
-	City          string `json:"city"`
-	State         string `json:"state"`
-	Country       string `json:"country"`
-	LandLinePhone string `json:"landlinePhone"`
-	MobilePhone   string `json:"mobilePhone"`
-	UserID        uint32 `json:"userId"`
-	BusinessID    uint32 `json:"businessId"`
+	Street     string `json:"street"`
+	PostalCode string `json:"postalCode"`
+	City       string `json:"city"`
+	State      string `json:"state"`
+	Country    string `json:"country"`
+	Landline   string `json:"landline"`
+	Mobile     string `json:"mobile"`
+	UserID     uint32 `json:"userId"`
 }
 
 // Business Model.
 type Business struct {
 	Model
-	Name       string  `json:"name"`
-	HourlyRate uint32  `gorm:"column:hourly_rate" json:"hourlyRate"`
-	Vat        uint32  `json:"vat"`
-	Address    Address `json:"address"`
+	Name       string `json:"name"`
+	HourlyRate uint32 `gorm:"column:hourly_rate" json:"hourlyRate"`
+	Vat        uint32 `json:"vat"`
+	Street     string `json:"street"`
+	PostalCode string `json:"postalCode"`
+	City       string `json:"city"`
+	State      string `json:"state"`
+	Country    string `json:"country"`
+	Landline   string `json:"landline"`
+	Mobile     string `json:"mobile"`
+}
+
+type AccountData struct {
+	ID       uint32 `json:"id"`
+	Email    string `json:"email"`
+	Password string `json:"-"`
 }
 
 // User Model
@@ -224,18 +235,35 @@ type User struct {
 	Transactions []Transaction `json:"transactions"`
 	Roles        []Role        `json:"roles"`
 	BusinessID   uint32        `json:"businessId"`
-	Business     Business      `json:"business"`
+	Account      AccountData   `json:"account"`
 }
 
-// swagger:parameters update_user
-type UpdateUser struct {
+type UpdateAddress struct {
 	ID            uint32 `json:"id"`
-	UserName      string `json:"username"`
-	BusinessName  string `json:"businessName"`
 	Street        string `json:"street"`
 	PostalCode    string `json:"postalCode"`
 	City          string `json:"city"`
 	Country       string `json:"country"`
 	LandLinePhone string `json:"landlinePhone"`
 	MobilePhone   string `json:"mobilePhone"`
+}
+
+// swagger:parameters update_user
+type UpdateUser struct {
+	ID       uint32        `json:"id"`
+	UserName string        `json:"username"`
+	Address  UpdateAddress `json:"address"`
+}
+
+type UpdateBusiness struct {
+	Name       string `json:"name"`
+	HourlyRate uint32 `json:"hourlyRate"`
+	Vat        uint32 `json:"vat"`
+	Street     string `json:"street"`
+	PostalCode string `json:"postalCode"`
+	City       string `json:"city"`
+	State      string `json:"state"`
+	Country    string `json:"country"`
+	Landline   string `json:"landline"`
+	Mobile     string `json:"mobile"`
 }

@@ -46,7 +46,7 @@ func CreateTransaction(ctx *gin.Context, c TransactionServiceClient) {
 		return
 	}
 
-	log.Printf("save transaction %v", transaction)
+	log.Printf("Create transaction %v", transaction)
 
 	inBytes, err := json.Marshal(transaction)
 	if err != nil {

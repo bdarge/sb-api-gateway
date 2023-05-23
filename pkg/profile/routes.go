@@ -24,6 +24,7 @@ func RegisterRoutes(router *gin.RouterGroup, c *config.Config, authSvc *auth.Ser
 	{
 		businessRoutes.Use(a.AuthRequired)
 		businessRoutes.GET("/:id", svc.GetBusiness)
+		businessRoutes.PATCH("/:id", svc.UpdateBusiness)
 	}
 }
 
@@ -40,4 +41,9 @@ func (svc *ServiceClient) UpdateUser(ctx *gin.Context) {
 // GetBusiness gets a business
 func (svc *ServiceClient) GetBusiness(ctx *gin.Context) {
 	GetBusiness(ctx, svc.Client)
+}
+
+// UpdateBusiness updates a business
+func (svc *ServiceClient) UpdateBusiness(ctx *gin.Context) {
+	UpdateBusiness(ctx, svc.Client)
 }
