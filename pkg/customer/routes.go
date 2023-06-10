@@ -16,7 +16,7 @@ func RegisterRoutes(router *gin.RouterGroup, c *config.Config, authSvc *auth.Ser
 	routes := router.Group("/customer")
 	{
 		routes.Use(a.AuthRequired)
-		routes.POST("/", svc.CreateCustomer)
+		routes.POST("", svc.CreateCustomer)
 		routes.GET("/:id", svc.GetCustomer)
 		routes.GET("", svc.GetCustomers)
 		routes.PATCH("/:id", svc.UpdateCustomer)
