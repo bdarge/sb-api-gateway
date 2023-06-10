@@ -1,3 +1,5 @@
+THIS_FILE := $(lastword $(MAKEFILE_LIST))
+
 proto:
 	 mkdir -p out && protoc ./pb/*.proto  --go_out=:. --go-grpc_out=:. \
  	--go_opt=Mpb/model.proto=github.com/bdarge/api-gateway/out/model \
@@ -18,3 +20,6 @@ doc: ## create api doc
 
 server:
 	go run cmd/main.go
+
+build:
+	@$(MAKE) -f $(THIS_FILE) proto; docker build -f Dockerfile.grpc -t api-gateway --target dev . --no-cache
