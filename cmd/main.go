@@ -35,6 +35,10 @@ func main() {
 	// Creates a router without any middleware by default
 	router := gin.New()
 
+	if err = router.SetTrustedProxies(nil); err != nil {
+		log.Fatalln("Failed at SetTrustedProxies", err)
+	}
+
 	//Default() allows all origins
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowHeaders = []string{"Content-Type", "Authorization"}
