@@ -6,8 +6,8 @@ type Config struct {
 	Port       string `mapstructure:"PORT"`
 	AuthSvcUrl string `mapstructure:"AUTH_SVC_URL"`
 	ApiSvcUrl  string `mapstructure:"API_SVC_URL"`
-	// base url
-	BaseUrl string `mapstructure:"BASE_URL"`
+	BaseUrl    string `mapstructure:"BASE_URL"`
+	DocUrl     string `mapstructure:"DOC_URL"`
 }
 
 func LoadConfig() (c Config, err error) {

@@ -23,7 +23,7 @@ import (
 // @Router /customer [post]
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Security ApiKeyAuth
+// @Security Bearer
 func CreateCustomer(ctx *gin.Context, client CustomerServiceClient) {
 	customer := models.Customer{}
 
@@ -68,7 +68,7 @@ func CreateCustomer(ctx *gin.Context, client CustomerServiceClient) {
 // @Success 200 {object} models.Customer
 // @Router /customer/{id} [Get]
 // @Failure 500 {object} ErrorResponse
-// @Security ApiKeyAuth
+// @Security Bearer
 func GetCustomer(ctx *gin.Context, client CustomerServiceClient) {
 	id, _ := strconv.ParseInt(ctx.Param("id"), 10, 32)
 
@@ -88,6 +88,15 @@ func GetCustomer(ctx *gin.Context, client CustomerServiceClient) {
 	ctx.JSON(http.StatusOK, res.Data)
 }
 
+// GetCustomers
+// @Summary Get customers
+// @ID get_customers
+// @Param page query int false "Page"
+// @Param limit query int false "Limit (max 100)"
+// @Success 200 {object} models.Customers
+// @Router /customer [Get]
+// @Failure 500 {object} ErrorResponse
+// @Security Bearer
 func GetCustomers(ctx *gin.Context, client CustomerServiceClient) {
 	log.Printf("request uri %s", ctx.Request.RequestURI)
 	var request = &models.CustomersRequest{}
@@ -185,7 +194,7 @@ func GetCustomers(ctx *gin.Context, client CustomerServiceClient) {
 // @Success 200 {object} models.Customer
 // @Router /customer/{id} [Patch]
 // @Failure 500 {object} ErrorResponse
-// @Security ApiKeyAuth
+// @Security Bearer
 func UpdateCustomer(ctx *gin.Context, c CustomerServiceClient) {
 	id, _ := strconv.ParseInt(ctx.Param("id"), 10, 32)
 	u := models.UpdateCustomer{}
@@ -274,10 +283,10 @@ func UpdateCustomer(ctx *gin.Context, c CustomerServiceClient) {
 // DeleteCustomer
 // @Summary Delete a customer
 // @ID delete_customer
-// @Success 200 {}
+// @Success 200
 // @Router /Customer/{id} [Delete]
 // @Failure 500 {object} ErrorResponse
-// @Security ApiKeyAuth
+// @Security Bearer
 func DeleteCustomer(ctx *gin.Context, c CustomerServiceClient) {
 	id, _ := strconv.ParseInt(ctx.Param("id"), 10, 32)
 

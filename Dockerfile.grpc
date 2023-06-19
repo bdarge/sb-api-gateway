@@ -19,11 +19,14 @@ ENV PATH="$PATH:$APP/.local/bin"
 
 RUN go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.28 && \
     go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.2 && \
+    go install github.com/swaggo/swag/cmd/swag@v1.8.9 && \
     export PATH="$PATH:$(go env GOPATH)/bin"
 
 WORKDIR /tmp/app
 
 COPY . .
+
+RUN swag init --parseDependency  --parseInternal --parseDepth 1  -g main.go -d cmd -o cmd/docs
 
 RUN go mod download
 

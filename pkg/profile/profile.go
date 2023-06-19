@@ -21,7 +21,7 @@ import (
 // @Success 200 {object} models.User
 // @Router /user/{id} [Get]
 // @Failure 500 {object} ErrorResponse
-// @Security ApiKeyAuth
+// @Security Bearer
 func GetUser(ctx *gin.Context, c ProfileServiceClient) {
 	id, _ := strconv.ParseInt(ctx.Param("id"), 10, 32)
 
@@ -73,7 +73,7 @@ func GetUser(ctx *gin.Context, c ProfileServiceClient) {
 // @Success 200 {object} models.User
 // @Router /user/{id} [Patch]
 // @Failure 500 {object} ErrorResponse
-// @Security ApiKeyAuth
+// @Security Bearer
 func UpdateUser(ctx *gin.Context, c ProfileServiceClient) {
 	log.Printf("** update user %v", ctx.Request.FormValue("id"))
 	id, _ := strconv.ParseInt(ctx.Param("id"), 10, 32)
@@ -159,6 +159,13 @@ func UpdateUser(ctx *gin.Context, c ProfileServiceClient) {
 	ctx.JSON(http.StatusOK, response)
 }
 
+// GetBusiness
+// @Summary Get Business
+// @ID get_business
+// @Success 200 {object} models.Business
+// @Router /business/{id} [Get]
+// @Failure 500 {object} ErrorResponse
+// @Security Bearer
 func GetBusiness(ctx *gin.Context, c ProfileServiceClient) {
 	id, _ := strconv.ParseInt(ctx.Param("id"), 10, 32)
 
@@ -203,6 +210,13 @@ func GetBusiness(ctx *gin.Context, c ProfileServiceClient) {
 	ctx.JSON(http.StatusOK, response)
 }
 
+// UpdateBusiness
+// @Summary Update business
+// @ID update_business
+// @Success 200 {object} models.Business
+// @Router /business/{id} [Patch]
+// @Failure 500 {object} ErrorResponse
+// @Security Bearer
 func UpdateBusiness(ctx *gin.Context, c ProfileServiceClient) {
 	log.Printf("** update business %v", ctx.Request.FormValue("id"))
 	id, _ := strconv.ParseInt(ctx.Param("id"), 10, 32)

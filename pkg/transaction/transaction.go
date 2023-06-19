@@ -23,7 +23,7 @@ import (
 // @Router /transaction [post]
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
-// @Security ApiKeyAuth
+// @Security Bearer
 func CreateTransaction(ctx *gin.Context, c TransactionServiceClient) {
 	transaction := models.NewTransaction{}
 
@@ -103,7 +103,7 @@ func CreateTransaction(ctx *gin.Context, c TransactionServiceClient) {
 // @Success 200 {object} models.Transaction
 // @Router /transaction/{id} [Get]
 // @Failure 500 {object} ErrorResponse
-// @Security ApiKeyAuth
+// @Security Bearer
 func GetTransaction(ctx *gin.Context, c TransactionServiceClient) {
 	id, _ := strconv.ParseInt(ctx.Param("id"), 10, 32)
 
@@ -156,7 +156,7 @@ func GetTransaction(ctx *gin.Context, c TransactionServiceClient) {
 // @Param requestType query string false "pass nothing, 'order' or 'quote'"
 // @Success 200 {object} models.Transactions
 // @Router /transaction [Get]
-// @Security ApiKeyAuth
+// @Security Bearer
 func GetTransactions(ctx *gin.Context, c TransactionServiceClient) {
 	log.Printf("request uri %s", ctx.Request.RequestURI)
 	var request = &models.TransactionsRequest{}
@@ -252,7 +252,7 @@ func GetTransactions(ctx *gin.Context, c TransactionServiceClient) {
 // @Success 200 {object} models.Transaction
 // @Router /transaction/{id} [Patch]
 // @Failure 500 {object} ErrorResponse
-// @Security ApiKeyAuth
+// @Security Bearer
 func UpdateTransaction(ctx *gin.Context, c TransactionServiceClient) {
 	id, _ := strconv.ParseInt(ctx.Param("id"), 10, 32)
 	log.Printf("Update transaction (id = %d)", id)
@@ -344,10 +344,10 @@ func UpdateTransaction(ctx *gin.Context, c TransactionServiceClient) {
 // DeleteTransaction
 // @Summary Delete a transaction
 // @ID delete_transaction
-// @Success 200 {}
+// @Success 200
 // @Router /transaction/{id} [Delete]
 // @Failure 500 {object} ErrorResponse
-// @Security ApiKeyAuth
+// @Security Bearer
 func DeleteTransaction(ctx *gin.Context, c TransactionServiceClient) {
 	id, _ := strconv.ParseInt(ctx.Param("id"), 10, 32)
 	log.Printf("Delete transaction with id: %d", id)

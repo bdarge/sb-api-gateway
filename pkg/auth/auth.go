@@ -52,7 +52,7 @@ func Register(ctx *gin.Context, c AuthServiceClient) {
 // @Param login body models.Login true "Add login credentials"
 // @Success 200 {object} models.Login
 // @Router /auth/login [post]
-// @Security ApiKeyAuth
+// @Security Bearer
 func Login(ctx *gin.Context, c AuthServiceClient) {
 	b := models.Account{}
 	log.Printf("Authenticate %v", ctx.Request.Body)
