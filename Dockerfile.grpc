@@ -24,9 +24,7 @@ COPY . .
 
 RUN swag init --parseDependency  --parseInternal --parseDepth 1  -g main.go -d cmd -o cmd/docs
 
-RUN go mod download
-
-RUN make proto
+RUN make proto && go mod download && go mod tidy
 
 RUN go build -o ./build cmd/main.go
 

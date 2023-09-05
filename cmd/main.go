@@ -9,8 +9,10 @@ import (
 	"github.com/bdarge/api-gateway/pkg/customer"
 	"github.com/bdarge/api-gateway/pkg/profile"
 	"github.com/bdarge/api-gateway/pkg/transaction"
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	adapter "github.com/gwatts/gin-adapter"
+	"github.com/jub0bs/fcors"
+	"github.com/jub0bs/fcors/risky"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"golang.org/x/exp/slog"
@@ -26,9 +28,9 @@ import (
 
 //	@BasePath	/v1
 
-//	@securityDefinitions.apikey	Bearer
-//	@in							header
-//	@name						Authorization
+// @securityDefinitions.apikey	Bearer
+// @in							header
+// @name						Authorization
 func main() {
 
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
@@ -49,17 +51,38 @@ func main() {
 		log.Fatalln("Failed at SetTrustedProxies", err)
 	}
 
-	//Default() allows all origins
-	corsConfig := cors.DefaultConfig()
-	corsConfig.AllowHeaders = []string{"Content-Type", "Authorization"}
-	corsConfig.AllowAllOrigins = true
-	router.Use(cors.New(corsConfig))
-
-	// Recovery middleware recovers from any panics and writes a 500 if there was one.
-	router.Use(gin.Recovery())
 	// By default, gin.DefaultWriter = os.Stdout, change the format
 	router.Use(jsonLoggerMiddleware())
 	// router.Use(slog.Logger{})
+
+	//reading https://jub0bs.com/posts/2023-02-08-fearless-cors/#3-provide-support-for-private-network-access
+	cors, corsErr := fcors.AllowAccess(
+		fcors.FromOrigins("https://localhost:4201", "http://localhost:4201"),
+		fcors.WithMethods(
+			http.MethodGet,
+			http.MethodDelete,
+			http.MethodPost,
+			http.MethodPut,
+			http.MethodPatch,
+			http.MethodOptions,
+		),
+		fcors.WithRequestHeaders(
+			"Authorization",
+			"Content-Type",
+		),
+		fcors.MaxAgeInSeconds(30),
+		risky.PrivateNetworkAccess(),
+	)
+
+	if corsErr != nil {
+		log.Fatalln("Failed at CORS setup", corsErr)
+	}
+
+	// apply the CORS middleware to the router
+	router.Use(adapter.Wrap(cors))
+
+	// Recovery middleware recovers from any panics and writes a 500 if there was one.
+	router.Use(gin.Recovery())
 
 	router.GET("/swagger", func(c *gin.Context) {
 		c.Redirect(http.StatusMovedPermanently, "/swagger/index.html")
