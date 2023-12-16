@@ -32,13 +32,17 @@ import (
 // @in							header
 // @name						Authorization
 func main() {
+	environment := os.Getenv("ENV")
+	if environment == "" {
+		environment = "dev"
+	}
 
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	slog.SetDefault(logger)
 
 	slog.Info("start app...")
 
-	conf, err := config.LoadConfig()
+	conf, err := config.LoadConfig(environment)
 
 	if err != nil {
 		log.Fatalln("Failed at config", err)

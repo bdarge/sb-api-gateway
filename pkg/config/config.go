@@ -10,9 +10,9 @@ type Config struct {
 	DocUrl     string `mapstructure:"DOC_URL"`
 }
 
-func LoadConfig() (c Config, err error) {
+func LoadConfig(target string) (c Config, err error) {
 	viper.AddConfigPath("./envs")
-	viper.SetConfigName("dev")
+	viper.SetConfigName(target)
 	viper.SetConfigType("env")
 
 	viper.AutomaticEnv()
