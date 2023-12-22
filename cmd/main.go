@@ -40,7 +40,7 @@ func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	slog.SetDefault(logger)
 
-	slog.Info("start app...")
+	slog.Info("start app")
 
 	conf, err := config.LoadConfig(environment)
 
@@ -58,6 +58,8 @@ func main() {
 	// By default, gin.DefaultWriter = os.Stdout, change the format
 	router.Use(jsonLoggerMiddleware())
 	// router.Use(slog.Logger{})
+
+	slog.Info("configure cors")
 
 	//reading https://jub0bs.com/posts/2023-02-08-fearless-cors/#3-provide-support-for-private-network-access
 	cors, corsErr := fcors.AllowAccess(
@@ -88,6 +90,7 @@ func main() {
 	// Recovery middleware recovers from any panics and writes a 500 if there was one.
 	router.Use(gin.Recovery())
 
+	slog.Info("configure doc")
 	router.GET("/swagger", func(c *gin.Context) {
 		c.Redirect(http.StatusMovedPermanently, "/swagger/index.html")
 	})
@@ -96,6 +99,7 @@ func main() {
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
 
+	slog.Info("set routes")
 	v1 := router.Group("/v1")
 	{
 		authSvc := *auth.RegisterRoutes(v1, &conf)
@@ -107,6 +111,7 @@ func main() {
 	if err = router.Run(conf.Port); err != nil {
 		log.Fatalln("Failed at gin.Run", err)
 	}
+	slog.Info("api gateway started", "port", conf.Port)
 }
 
 func jsonLoggerMiddleware() gin.HandlerFunc {
