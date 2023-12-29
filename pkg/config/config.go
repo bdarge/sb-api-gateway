@@ -7,7 +7,6 @@ type Config struct {
 	AuthSvcUrl string `mapstructure:"AUTH_SVC_URL"`
 	ApiSvcUrl  string `mapstructure:"API_SVC_URL"`
 	BaseUrl    string `mapstructure:"BASE_URL"`
-	DocUrl     string `mapstructure:"DOC_URL"`
 }
 
 func LoadConfig(target string) (c Config, err error) {

@@ -90,18 +90,22 @@ func main() {
 	// Recovery middleware recovers from any panics and writes a 500 if there was one.
 	router.Use(gin.Recovery())
 
-	slog.Info("configure doc")
-	router.GET("/swagger", func(c *gin.Context) {
-		c.Redirect(http.StatusMovedPermanently, "/swagger/index.html")
+	router.GET("/health", func(ctx *gin.Context) {
+		ctx.JSON(http.StatusOK, "")
 	})
 
-	url := ginSwagger.URL(fmt.Sprintf("%s/swagger/doc.json", conf.DocUrl))
+	slog.Info("configure doc")
 
-	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
+	//url := ginSwagger.URL(fmt.Sprintf("%s/docs/swagger.json", conf.BaseUrl))
+	//router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
 
 	slog.Info("set routes")
 	v1 := router.Group("/v1")
 	{
+		v1.GET("/docs", func(c *gin.Context) {
+			c.Redirect(http.StatusMovedPermanently, fmt.Sprintf("%s/docs/index.html", conf.BaseUrl))
+		})
+		v1.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 		authSvc := *auth.RegisterRoutes(v1, &conf)
 		transaction.RegisterRoutes(v1, &conf, &authSvc)
 		customer.RegisterRoutes(v1, &conf, &authSvc)
