@@ -57,7 +57,6 @@ func main() {
 
 	// By default, gin.DefaultWriter = os.Stdout, change the format
 	router.Use(jsonLoggerMiddleware())
-	// router.Use(slog.Logger{})
 
 	slog.Info("configure cors")
 
@@ -94,14 +93,10 @@ func main() {
 		ctx.JSON(http.StatusOK, "")
 	})
 
-	slog.Info("configure doc")
-
-	//url := ginSwagger.URL(fmt.Sprintf("%s/docs/swagger.json", conf.BaseUrl))
-	//router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler, url))
-
 	slog.Info("set routes")
 	v1 := router.Group("/v1")
 	{
+		slog.Info("configure doc")
 		v1.GET("/docs", func(c *gin.Context) {
 			c.Redirect(http.StatusMovedPermanently, fmt.Sprintf("%s/docs/index.html", conf.BaseUrl))
 		})
