@@ -36,7 +36,7 @@ WORKDIR /bin/app
 
 RUN ["go", "install", "github.com/githubnemo/CompileDaemon@latest"]
 
-ENTRYPOINT CompileDaemon -log-prefix=false -build="go build -o ./bin/app ./cmd/" -command="./bin/app"
+ENTRYPOINT CompileDaemon -log-prefix=false -build="go mod tidy && go build -o ./bin/app ./cmd/" -command="./bin/app"
 
 FROM alpine:latest as prod
 

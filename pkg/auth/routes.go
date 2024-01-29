@@ -8,12 +8,13 @@ import (
 func RegisterRoutes(r *gin.RouterGroup, c *config.Config) *ServiceClient {
 	svc := &ServiceClient{
 		Client: InitServiceClient(c),
+		Config: *c,
 	}
 
 	routes := r.Group("/auth")
 	routes.POST("/register", svc.Register)
 	routes.POST("/login", svc.Login)
-
+	routes.POST("/refresh-token", svc.refreshToken)
 	return svc
 }
 
@@ -24,5 +25,10 @@ func (svc *ServiceClient) Register(ctx *gin.Context) {
 
 // Login a user
 func (svc *ServiceClient) Login(ctx *gin.Context) {
-	Login(ctx, svc.Client)
+	Login(ctx, svc.Client, &svc.Config)
+}
+
+// Refresh token
+func (svc *ServiceClient) refreshToken(ctx *gin.Context) {
+	RefreshToken(ctx, svc.Client, &svc.Config)
 }

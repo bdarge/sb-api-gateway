@@ -10,6 +10,7 @@ import (
 
 type ServiceClient struct {
 	Client auth.AuthServiceClient
+	Config config.Config
 }
 
 func InitServiceClient(c *config.Config) auth.AuthServiceClient {

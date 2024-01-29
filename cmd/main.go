@@ -61,7 +61,7 @@ func main() {
 	slog.Info("configure cors")
 
 	//reading https://jub0bs.com/posts/2023-02-08-fearless-cors/#3-provide-support-for-private-network-access
-	cors, corsErr := fcors.AllowAccess(
+	cors, corsErr := fcors.AllowAccessWithCredentials(
 		fcors.FromOrigins("https://localhost:4201", "http://localhost:4201"),
 		fcors.WithMethods(
 			http.MethodGet,

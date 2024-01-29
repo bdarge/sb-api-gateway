@@ -4,7 +4,9 @@ import (
 	"context"
 	auth "github.com/bdarge/api-gateway/out/auth"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/exp/slog"
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -19,6 +21,9 @@ func InitAuthMiddleware(svc *ServiceClient) Middleware {
 func (c *Middleware) AuthRequired(ctx *gin.Context) {
 	authorization := ctx.Request.Header.Get("authorization")
 
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	slog.SetDefault(logger)
+
 	if authorization == "" {
 		ctx.AbortWithStatus(http.StatusUnauthorized)
 		return
@@ -27,15 +32,17 @@ func (c *Middleware) AuthRequired(ctx *gin.Context) {
 	token := strings.Split(authorization, "Bearer ")
 
 	if len(token) < 2 {
+		slog.Info("token not found")
 		ctx.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
 
-	res, err := c.svc.Client.Validate(context.Background(), &auth.ValidateRequest{
+	res, err := c.svc.Client.ValidateToken(context.Background(), &auth.ValidateTokenRequest{
 		Token: token[1],
 	})
 
 	if err != nil || res.Status != http.StatusOK {
+		slog.Error("token is invalid", "error", err)
 		ctx.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}

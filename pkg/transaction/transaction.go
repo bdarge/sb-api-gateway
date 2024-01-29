@@ -4,36 +4,38 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/bdarge/api-gateway/out/model"
-	. "github.com/bdarge/api-gateway/out/transaction"
-	"github.com/bdarge/api-gateway/pkg/models"
-	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
-	"google.golang.org/protobuf/encoding/protojson"
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/bdarge/api-gateway/out/model"
+	"github.com/bdarge/api-gateway/out/transaction"
+	"github.com/bdarge/api-gateway/pkg/models"
+	"github.com/bdarge/api-gateway/pkg/utils"
+	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
-// CreateTransaction
+// CreateTransaction create a transaction
 // @Summary Create a transaction, an order or a quote
 // @ID create_transaction
-// @Param transaction body models.NewTransaction true "Add transactions"
+// @Param transaction body models.NewTransaction true "Add transaction"
 // @Success 201 {object} models.CreateResponse
 // @Router /transaction [post]
 // @Failure 400 {object} ErrorResponse
 // @Failure 500 {object} ErrorResponse
 // @Security Bearer
-func CreateTransaction(ctx *gin.Context, c TransactionServiceClient) {
-	transaction := models.NewTransaction{}
+func CreateTransaction(ctx *gin.Context, c transaction.TransactionServiceClient) {
+	t := models.NewTransaction{}
 
-	if err := ctx.BindJSON(&transaction); err != nil {
+	if err := ctx.BindJSON(&t); err != nil {
 		log.Printf("Error: %s", err)
 		var ve validator.ValidationErrors
 		if errors.As(err, &ve) { /**/
 			out := make([]models.ErrorMsg, len(ve))
 			for i, fe := range ve {
-				out[i] = models.ErrorMsg{Field: fe.Field(), Message: models.GetErrorMsg(fe)}
+				out[i] = models.ErrorMsg{Field: fe.Field(), Message: utils.GetErrorMsg(fe)}
 			}
 			ctx.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse400{Errors: out})
 		} else {
@@ -46,9 +48,9 @@ func CreateTransaction(ctx *gin.Context, c TransactionServiceClient) {
 		return
 	}
 
-	log.Printf("Create transaction %v", transaction)
+	log.Printf("Create transaction %v", t)
 
-	inBytes, err := json.Marshal(transaction)
+	inBytes, err := json.Marshal(t)
 	if err != nil {
 		log.Printf("Error: %v", err)
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError,
@@ -58,7 +60,7 @@ func CreateTransaction(ctx *gin.Context, c TransactionServiceClient) {
 		return
 	}
 
-	var data CreateTransactionRequest
+	var data transaction.CreateTransactionRequest
 	log.Printf("stringfly data in bytes: %s", inBytes)
 
 	// ignore unknown fields
@@ -97,17 +99,17 @@ func CreateTransaction(ctx *gin.Context, c TransactionServiceClient) {
 	ctx.JSON(http.StatusCreated, &models.CreateResponse{ID: res.Id})
 }
 
-// GetTransaction
+// GetTransaction get a transaction
 // @Summary Get transaction
 // @ID get_transaction
 // @Success 200 {object} models.Transaction
 // @Router /transaction/{id} [Get]
 // @Failure 500 {object} ErrorResponse
 // @Security Bearer
-func GetTransaction(ctx *gin.Context, c TransactionServiceClient) {
+func GetTransaction(ctx *gin.Context, c transaction.TransactionServiceClient) {
 	id, _ := strconv.ParseInt(ctx.Param("id"), 10, 32)
 
-	res, err := c.GetTransaction(context.Background(), &GetTransactionRequest{
+	res, err := c.GetTransaction(context.Background(), &transaction.GetTransactionRequest{
 		Id: uint32(id),
 	})
 
@@ -148,7 +150,7 @@ func GetTransaction(ctx *gin.Context, c TransactionServiceClient) {
 	ctx.JSON(http.StatusOK, response)
 }
 
-// GetTransactions
+// GetTransactions return transactions
 // @Summary Get transactions
 // @ID get_transactions
 // @Param page query int false "Page"
@@ -157,7 +159,7 @@ func GetTransaction(ctx *gin.Context, c TransactionServiceClient) {
 // @Success 200 {object} models.Transactions
 // @Router /transaction [Get]
 // @Security Bearer
-func GetTransactions(ctx *gin.Context, c TransactionServiceClient) {
+func GetTransactions(ctx *gin.Context, c transaction.TransactionServiceClient) {
 	log.Printf("request uri %s", ctx.Request.RequestURI)
 	var request = &models.TransactionsRequest{}
 
@@ -167,7 +169,7 @@ func GetTransactions(ctx *gin.Context, c TransactionServiceClient) {
 		if errors.As(err, &ve) {
 			out := make([]models.ErrorMsg, len(ve))
 			for i, fe := range ve {
-				out[i] = models.ErrorMsg{Field: fe.Field(), Message: models.GetErrorMsg(fe)}
+				out[i] = models.ErrorMsg{Field: fe.Field(), Message: utils.GetErrorMsg(fe)}
 			}
 			ctx.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse400{Errors: out})
 		} else {
@@ -191,7 +193,7 @@ func GetTransactions(ctx *gin.Context, c TransactionServiceClient) {
 	}
 	log.Printf("stringfly data in bytes: %s", inBytes)
 
-	var requestMessage GetTransactionsRequest
+	var requestMessage transaction.GetTransactionsRequest
 
 	// ignore unknown fields
 	// unMarshaller := &protojson.UnmarshalOptions{DiscardUnknown: true}
@@ -245,7 +247,7 @@ func GetTransactions(ctx *gin.Context, c TransactionServiceClient) {
 	ctx.JSON(http.StatusOK, data)
 }
 
-// UpdateTransaction
+// UpdateTransaction updates a transaction
 // @Summary Update a transaction
 // @ID update_transaction
 // @Param transaction body models.UpdateTransaction true "Update transaction"
@@ -253,7 +255,7 @@ func GetTransactions(ctx *gin.Context, c TransactionServiceClient) {
 // @Router /transaction/{id} [Patch]
 // @Failure 500 {object} ErrorResponse
 // @Security Bearer
-func UpdateTransaction(ctx *gin.Context, c TransactionServiceClient) {
+func UpdateTransaction(ctx *gin.Context, c transaction.TransactionServiceClient) {
 	id, _ := strconv.ParseInt(ctx.Param("id"), 10, 32)
 	log.Printf("Update transaction (id = %d)", id)
 	u := models.UpdateTransaction{}
@@ -261,10 +263,10 @@ func UpdateTransaction(ctx *gin.Context, c TransactionServiceClient) {
 	if err := ctx.BindJSON(&u); err != nil {
 		log.Printf("Error: %s", err)
 		var ve validator.ValidationErrors
-		if errors.As(err, &ve) { /**/
+		if errors.As(err, &ve) {
 			out := make([]models.ErrorMsg, len(ve))
 			for i, fe := range ve {
-				out[i] = models.ErrorMsg{Field: fe.Field(), Message: models.GetErrorMsg(fe)}
+				out[i] = models.ErrorMsg{Field: fe.Field(), Message: utils.GetErrorMsg(fe)}
 			}
 			ctx.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse400{Errors: out})
 		} else {
@@ -288,7 +290,7 @@ func UpdateTransaction(ctx *gin.Context, c TransactionServiceClient) {
 		return
 	}
 
-	var update UpdateTransactionData
+	var update transaction.UpdateTransactionData
 	log.Printf("stringfly data in bytes: %s", inBytes)
 
 	// ignore unknown fields
@@ -305,74 +307,66 @@ func UpdateTransaction(ctx *gin.Context, c TransactionServiceClient) {
 	}
 	log.Printf("mesage: %v", &update)
 
-	res, err := c.UpdateTransaction(context.Background(), &UpdateTransactionRequest{
+	res, err := c.UpdateTransaction(context.Background(), &transaction.UpdateTransactionRequest{
 		Id:   uint32(id),
 		Data: &update,
 	})
 
-	if err != nil || res.Status >= 400 {
-		if res != nil && res.Status >= 400 {
-			log.Printf("Server Error: %v", res.Error)
-			ctx.AbortWithStatusJSON(int(res.Status),
-				models.ErrorResponse{
-					Error:   "ACTIONERR-2",
-					Message: res.Error})
-		} else {
-			log.Printf("Error when updating: %v", err)
-			ctx.AbortWithStatusJSON(http.StatusInternalServerError,
-				models.ErrorResponse{
-					Error:   "ACTIONERR-1",
-					Message: "An error happened, please check later."})
-		}
+	response, err := convertToModel(res.Data)
+	if err == nil && res != nil && res.Status < 400 {
+		ctx.JSON(http.StatusOK, response)
 		return
 	}
 
-	response, err := convertToModel(res.Data)
-
-	if err != nil {
-		log.Printf("Error while mappind data: %v", err)
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError,
+	if res != nil && res.Status >= 400 {
+		log.Printf("Server Error: %v", res.Error)
+		ctx.AbortWithStatusJSON(int(res.Status),
 			models.ErrorResponse{
-				Error:   "ACTIONERR-1",
+				Error:   "ACTIONERR-2",
 				Message: "An error happened, please check later."})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, response)
+	log.Printf("Error when updating: %v", err)
+	ctx.AbortWithStatusJSON(http.StatusInternalServerError,
+		models.ErrorResponse{
+			Error:   "ACTIONERR-1",
+			Message: "An error happened, please check later."})
 }
 
-// DeleteTransaction
+// DeleteTransaction delete
 // @Summary Delete a transaction
 // @ID delete_transaction
 // @Success 200
 // @Router /transaction/{id} [Delete]
 // @Failure 500 {object} ErrorResponse
 // @Security Bearer
-func DeleteTransaction(ctx *gin.Context, c TransactionServiceClient) {
+func DeleteTransaction(ctx *gin.Context, c transaction.TransactionServiceClient) {
 	id, _ := strconv.ParseInt(ctx.Param("id"), 10, 32)
 	log.Printf("Delete transaction with id: %d", id)
-	res, err := c.DeleteTransaction(context.Background(), &DeleteTransactionRequest{
+	res, err := c.DeleteTransaction(context.Background(), &transaction.DeleteTransactionRequest{
 		Id: uint32(id),
 	})
 
-	if err != nil || res.Status >= 400 {
-		if res != nil && res.Status >= 400 {
-			log.Printf("Server Error: %v", res.Error)
-			ctx.AbortWithStatusJSON(int(res.Status),
-				models.ErrorResponse{
-					Error:   "ACTIONERR-2",
-					Message: res.Error})
-		} else {
-			log.Printf("Server Error: %v", err)
-			ctx.AbortWithStatusJSON(http.StatusInternalServerError,
-				models.ErrorResponse{
-					Error:   "ACTIONERR-1",
-					Message: "An error happened, please check later."})
-		}
+	if err == nil && res != nil && res.Status < 400 {
+		ctx.Status(http.StatusNoContent)
 		return
 	}
-	ctx.Status(http.StatusNoContent)
-	return
+
+	if res != nil && res.Status >= 400 {
+		log.Printf("Server Error: %v", res.Error)
+		ctx.AbortWithStatusJSON(int(res.Status),
+			models.ErrorResponse{
+				Error:   "ACTIONERR-2",
+				Message: res.Error})
+		return
+	}
+
+	log.Printf("Server Error: %v", err)
+	ctx.AbortWithStatusJSON(http.StatusInternalServerError,
+		models.ErrorResponse{
+			Error:   "ACTIONERR-1",
+			Message: "An error happened, please check later."})
 }
 
 func convertToModel(data *model.TransactionData) (*models.Transaction, error) {

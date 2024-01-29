@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	. "github.com/bdarge/api-gateway/out/auth"
+	"github.com/bdarge/api-gateway/pkg/config"
 	"github.com/bdarge/api-gateway/pkg/models"
 	"github.com/bdarge/api-gateway/pkg/utils"
 	"google.golang.org/grpc"
@@ -16,9 +17,10 @@ import (
 )
 
 type MockAuthServiceClient struct {
-	LoginFunc    func(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
-	RegisterFunc func(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
-	ValidateFunc func(ctx context.Context, in *ValidateRequest, opts ...grpc.CallOption) (*ValidateResponse, error)
+	LoginFunc        func(ctx context.Context, in *LoginRequest, opts ...grpc.CallOption) (*LoginResponse, error)
+	RegisterFunc     func(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error)
+	ValidateFunc     func(ctx context.Context, in *ValidateTokenRequest, opts ...grpc.CallOption) (*ValidateTokenResponse, error)
+	RefreshTokenFunc func(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*LoginResponse, error)
 }
 
 func (M MockAuthServiceClient) Register(ctx context.Context, in *RegisterRequest, opts ...grpc.CallOption) (*RegisterResponse, error) {
@@ -29,11 +31,16 @@ func (M MockAuthServiceClient) Login(ctx context.Context, in *LoginRequest, opts
 	return M.LoginFunc(ctx, in, opts...)
 }
 
-func (M MockAuthServiceClient) Validate(ctx context.Context, in *ValidateRequest, opts ...grpc.CallOption) (*ValidateResponse, error) {
+func (M MockAuthServiceClient) ValidateToken(ctx context.Context, in *ValidateTokenRequest, opts ...grpc.CallOption) (*ValidateTokenResponse, error) {
 	return M.ValidateFunc(ctx, in, opts...)
 }
 
+func (M MockAuthServiceClient) RefreshToken(ctx context.Context, in *RefreshTokenRequest, opts ...grpc.CallOption) (*LoginResponse, error) {
+	return M.RefreshTokenFunc(ctx, in, opts...)
+}
+
 func TestLogin(t *testing.T) {
+	c, _ := config.LoadConfig("dev")
 	// tests cases
 	tests := []struct {
 		name      string
@@ -90,7 +97,7 @@ func TestLogin(t *testing.T) {
 		ctx := utils.MockPostTest(w, tt.body)
 		client := new(MockAuthServiceClient)
 		client.LoginFunc = tt.dependent
-		Login(ctx, client)
+		Login(ctx, client, &c)
 
 		if w.Code != tt.status {
 			b, _ := io.ReadAll(w.Body)

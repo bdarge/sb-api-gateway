@@ -4,15 +4,17 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/bdarge/api-gateway/out/model"
-	. "github.com/bdarge/api-gateway/out/profile"
-	"github.com/bdarge/api-gateway/pkg/models"
-	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
-	"google.golang.org/protobuf/encoding/protojson"
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/bdarge/api-gateway/out/model"
+	. "github.com/bdarge/api-gateway/out/profile"
+	"github.com/bdarge/api-gateway/pkg/models"
+	"github.com/bdarge/api-gateway/pkg/utils"
+	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 // GetUser
@@ -85,7 +87,7 @@ func UpdateUser(ctx *gin.Context, c ProfileServiceClient) {
 		if errors.As(err, &ve) { /**/
 			out := make([]models.ErrorMsg, len(ve))
 			for i, fe := range ve {
-				out[i] = models.ErrorMsg{Field: fe.Field(), Message: models.GetErrorMsg(fe)}
+				out[i] = models.ErrorMsg{Field: fe.Field(), Message: utils.GetErrorMsg(fe)}
 			}
 			ctx.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse400{Errors: out})
 		} else {
@@ -228,7 +230,7 @@ func UpdateBusiness(ctx *gin.Context, c ProfileServiceClient) {
 		if errors.As(err, &ve) { /**/
 			out := make([]models.ErrorMsg, len(ve))
 			for i, fe := range ve {
-				out[i] = models.ErrorMsg{Field: fe.Field(), Message: models.GetErrorMsg(fe)}
+				out[i] = models.ErrorMsg{Field: fe.Field(), Message: utils.GetErrorMsg(fe)}
 			}
 			ctx.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse400{Errors: out})
 		} else {
