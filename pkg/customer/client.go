@@ -1,23 +1,26 @@
 package customer
 
 import (
-	. "github.com/bdarge/api-gateway/out/customer"
+	"log"
+
+	"github.com/bdarge/api-gateway/out/customer"
 	"github.com/bdarge/api-gateway/pkg/config"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"log"
 )
 
+// ServiceClient client
 type ServiceClient struct {
-	Client CustomerServiceClient
+	Client customer.CustomerServiceClient
 }
 
-func InitServiceClient(c *config.Config) CustomerServiceClient {
-	cc, err := grpc.Dial(c.ApiSvcUrl, grpc.WithTransportCredentials(insecure.NewCredentials()))
+// InitServiceClient init CustomerServiceClient
+func InitServiceClient(c *config.Config) customer.CustomerServiceClient {
+	cc, err := grpc.Dial(c.APISvcURL, grpc.WithTransportCredentials(insecure.NewCredentials()))
 
 	if err != nil {
-		log.Printf("couldn't connect to %s: %s", c.ApiSvcUrl, err)
+		log.Printf("couldn't connect to %s: %s", c.APISvcURL, err)
 	}
 
-	return NewCustomerServiceClient(cc)
+	return customer.NewCustomerServiceClient(cc)
 }

@@ -64,7 +64,7 @@ func CreateCustomer(ctx *gin.Context, client CustomerServiceClient) {
 	ctx.JSON(http.StatusCreated, &models.CreateResponse{ID: res.Id})
 }
 
-// GetCustomer
+// GetCustomer godoc
 // @Summary Get customer
 // @ID get_customer
 // @Success 200 {object} models.Customer
@@ -79,7 +79,7 @@ func GetCustomer(ctx *gin.Context, client CustomerServiceClient) {
 	})
 
 	if err != nil {
-		log.Printf("error getting a cutomer: %v", err)
+		log.Printf("error getting a customer: %v", err)
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError,
 			models.ErrorResponse{
 				Error:   "ACTIONERR-1",
@@ -90,7 +90,7 @@ func GetCustomer(ctx *gin.Context, client CustomerServiceClient) {
 	ctx.JSON(http.StatusOK, res.Data)
 }
 
-// GetCustomers
+// GetCustomers godoc
 // @Summary Get customers
 // @ID get_customers
 // @Param page query int false "Page"
@@ -101,6 +101,7 @@ func GetCustomer(ctx *gin.Context, client CustomerServiceClient) {
 // @Security Bearer
 func GetCustomers(ctx *gin.Context, client CustomerServiceClient) {
 	log.Printf("request uri %s", ctx.Request.RequestURI)
+
 	var request = &models.CustomersRequest{}
 
 	err := ctx.ShouldBindQuery(&request)
@@ -131,7 +132,7 @@ func GetCustomers(ctx *gin.Context, client CustomerServiceClient) {
 				"message": "An error happened, please check later."})
 		return
 	}
-	log.Printf("stringfly data in bytes: %s", inBytes)
+	log.Printf("stringify data in bytes: %s", inBytes)
 
 	var requestMessage GetCustomersRequest
 
@@ -189,7 +190,7 @@ func GetCustomers(ctx *gin.Context, client CustomerServiceClient) {
 	ctx.JSON(http.StatusOK, data)
 }
 
-// UpdateCustomer
+// UpdateCustomer godoc
 // @Summary Update a customer
 // @ID update_customer
 // @Param customer body models.UpdateCustomer true "Update customer"
@@ -282,7 +283,7 @@ func UpdateCustomer(ctx *gin.Context, c CustomerServiceClient) {
 	ctx.JSON(http.StatusOK, response)
 }
 
-// DeleteCustomer
+// DeleteCustomer godoc
 // @Summary Delete a customer
 // @ID delete_customer
 // @Success 200

@@ -12,7 +12,7 @@ import (
 	"os"
 )
 
-// Register
+// Register godoc
 // @Summary Register a user
 // @ID register
 // @Param register body models.Account true "Add account details"
@@ -49,7 +49,7 @@ func Register(ctx *gin.Context, c AuthServiceClient) {
 	ctx.JSON(int(res.Status), &res)
 }
 
-// Login
+// Login godoc
 // @Summary Authenticate a user
 // @ID login
 // @Param login body models.Login true "Add login credentials"
@@ -74,7 +74,7 @@ func Login(ctx *gin.Context, authClient AuthServiceClient, config *config.Config
 	})
 
 	if err != nil || result.Status >= 400 {
-		if result.Status >= 400 {
+		if err != nil && result.Status >= 400 {
 			ctx.AbortWithStatusJSON(int(result.Status), result.Error)
 		} else {
 			_ = ctx.AbortWithError(http.StatusInternalServerError, err)
@@ -88,6 +88,7 @@ func Login(ctx *gin.Context, authClient AuthServiceClient, config *config.Config
 		Error:  result.Error,
 	}
 	ctx.SetSameSite(http.SameSiteNoneMode)
+
 	ctx.SetCookie(
 		"token", result.RefreshToken, config.RefreshTokenExpOn,
 		"/", config.UIDomain, true, true,
@@ -96,7 +97,7 @@ func Login(ctx *gin.Context, authClient AuthServiceClient, config *config.Config
 	ctx.JSON(http.StatusOK, &res)
 }
 
-// RefreshToken
+// RefreshToken godoc
 // @Summary Authenticate a user
 // @ID refresh_token
 // @Success 200 {object} models.LoginResponse

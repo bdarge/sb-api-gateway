@@ -84,7 +84,7 @@ func UpdateUser(ctx *gin.Context, c ProfileServiceClient) {
 	if err := ctx.BindJSON(&u); err != nil {
 		log.Printf("Error: %s", err)
 		var ve validator.ValidationErrors
-		if errors.As(err, &ve) { /**/
+		if errors.As(err, &ve) {
 			out := make([]models.ErrorMsg, len(ve))
 			for i, fe := range ve {
 				out[i] = models.ErrorMsg{Field: fe.Field(), Message: utils.GetErrorMsg(fe)}
@@ -125,7 +125,7 @@ func UpdateUser(ctx *gin.Context, c ProfileServiceClient) {
 		return
 	}
 	updateUserData.Id = uint32(id)
-	log.Printf("mesage: %v", &updateUserData)
+	log.Printf("message: %v", &updateUserData)
 
 	res, err := c.UpdateUser(context.Background(), &UpdateUserRequest{
 		Id:   uint32(id),

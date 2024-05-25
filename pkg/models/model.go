@@ -281,3 +281,16 @@ type UpdateBusiness struct {
 	Landline   string `json:"landline"`
 	Mobile     string `json:"mobile"`
 }
+
+// Currency Model
+type Currency struct {
+	Base 		string   `json:"base"`
+	Symbol  string   `json:"symbol"`
+}
+
+// CurrencyResponse Model
+type CurrencyResponse struct {
+	To 		   string   	 `json:"to"`
+	Base     string      `json:"base"`
+	Value    string      `json:"value"`
+}

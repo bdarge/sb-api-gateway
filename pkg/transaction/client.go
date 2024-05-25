@@ -1,12 +1,13 @@
 package transaction
 
 import (
+	"log"
+
 	"github.com/bdarge/api-gateway/out/transaction"
 	"github.com/bdarge/api-gateway/out/transactionItem"
 	"github.com/bdarge/api-gateway/pkg/config"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"log"
 )
 
 // ServiceClient service client struct
@@ -16,10 +17,10 @@ type ServiceClient struct {
 
 // InitServiceClient initalize ServiceClient
 func InitServiceClient(c *config.Config) transaction.TransactionServiceClient {
-	cc, err := grpc.Dial(c.ApiSvcUrl, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	cc, err := grpc.Dial(c.APISvcURL, grpc.WithTransportCredentials(insecure.NewCredentials()))
 
 	if err != nil {
-		log.Printf("couldn't connect to %s: %s", c.ApiSvcUrl, err)
+		log.Printf("couldn't connect to %s: %s", c.APISvcURL, err)
 	}
 
 	return transaction.NewTransactionServiceClient(cc)
@@ -32,12 +33,11 @@ type TranItemServiceClient struct {
 
 // InitTranItemServiceClient initalize TransactionItemServiceClient
 func InitTranItemServiceClient(c *config.Config) transactionItem.TransactionItemServiceClient {
-	cc, err := grpc.Dial(c.ApiSvcUrl, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	cc, err := grpc.Dial(c.APISvcURL, grpc.WithTransportCredentials(insecure.NewCredentials()))
 
 	if err != nil {
-		log.Printf("couldn't connect to %s: %s", c.ApiSvcUrl, err)
+		log.Printf("couldn't connect to %s: %s", c.APISvcURL, err)
 	}
 
 	return transactionItem.NewTransactionItemServiceClient(cc)
 }
-

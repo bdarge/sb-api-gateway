@@ -3,9 +3,14 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
+	"net/http"
+	"os"
+
 	_ "github.com/bdarge/api-gateway/cmd/docs"
 	"github.com/bdarge/api-gateway/pkg/auth"
 	"github.com/bdarge/api-gateway/pkg/config"
+	"github.com/bdarge/api-gateway/pkg/currency"
 	"github.com/bdarge/api-gateway/pkg/customer"
 	"github.com/bdarge/api-gateway/pkg/profile"
 	"github.com/bdarge/api-gateway/pkg/transaction"
@@ -16,9 +21,6 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"golang.org/x/exp/slog"
-	"log"
-	"net/http"
-	"os"
 )
 
 //	@title			SM Swagger API
@@ -98,13 +100,14 @@ func main() {
 	{
 		slog.Info("configure doc")
 		v1.GET("/docs", func(c *gin.Context) {
-			c.Redirect(http.StatusMovedPermanently, fmt.Sprintf("%s/docs/index.html", conf.BaseUrl))
+			c.Redirect(http.StatusMovedPermanently, fmt.Sprintf("%s/docs/index.html", conf.BaseURL))
 		})
 		v1.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 		authSvc := *auth.RegisterRoutes(v1, &conf)
 		transaction.RegisterRoutes(v1, &conf, &authSvc)
 		customer.RegisterRoutes(v1, &conf, &authSvc)
 		profile.RegisterRoutes(v1, &conf, &authSvc)
+		currency.RegisterRoutes(v1, &conf, &authSvc)
 	}
 
 	if err = router.Run(conf.Port); err != nil {

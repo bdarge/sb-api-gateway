@@ -17,7 +17,7 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
-// CreateTransactionItem create transaction item
+// CreateTransactionItem godoc
 // @Summary Create a transaction, an order or a quote
 // @ID create_transaction_item
 // @Param transactionItem body models.NewTransactionItem true "Add transaction item"
@@ -108,7 +108,7 @@ func CreateTransactionItem(ctx *gin.Context, c transactionItem.TransactionItemSe
 			Message: "An error happened, please check later."})
 }
 
-// GetTransactionItem get a transaction item
+// GetTransactionItem godoc
 // @Summary Get transaction item
 // @ID get_transaction_item
 // @Success 200 {object} models.TransactionItem
@@ -123,7 +123,7 @@ func GetTransactionItem(ctx *gin.Context, c transactionItem.TransactionItemServi
 	}); err == nil {
 
 		log.Printf("backend returned data: %v", res)
-		if response, err := converToTransactionItemModel(res.Data); err == nil && res != nil && res.Status < 400 {
+		if response, err := toTransactionItemModel(res.Data); err == nil && res != nil && res.Status < 400 {
 			ctx.JSON(http.StatusOK, response)
 			return
 		}
@@ -143,7 +143,7 @@ func GetTransactionItem(ctx *gin.Context, c transactionItem.TransactionItemServi
 			Message: "An error happened, please check later."})
 }
 
-// UpdateTransactionItem updates a transaction item
+// UpdateTransactionItem godoc
 // @Summary Update a transaction item
 // @ID update_transaction_item
 // @Param transaction body models.UpdateTransactionItem true "Update transaction item"
@@ -215,7 +215,7 @@ func UpdateTransactionItem(ctx *gin.Context, c transactionItem.TransactionItemSe
 		return
 	}
 
-	response, err := converToTransactionItemModel(res.Data)
+	response, err := toTransactionItemModel(res.Data)
 
 	if err == nil && res != nil && res.Status < 400 {
 		ctx.JSON(http.StatusOK, response)
@@ -231,7 +231,7 @@ func UpdateTransactionItem(ctx *gin.Context, c transactionItem.TransactionItemSe
 		return
 	}
 
-	log.Printf("Error while mappind data: %v", err)
+	log.Printf("Error while mapping data: %v", err)
 	ctx.AbortWithStatusJSON(http.StatusInternalServerError,
 		models.ErrorResponse{
 			Error:   "ACTIONERR-1",
@@ -381,7 +381,7 @@ func GetTransactionItems(ctx *gin.Context, c transactionItem.TransactionItemServ
 	return
 }
 
-func converToTransactionItemModel(data *model.TransactionItem) (*models.TransactionItem, error) {
+func toTransactionItemModel(data *model.TransactionItem) (*models.TransactionItem, error) {
 	message, err := protojson.Marshal(data)
 	log.Printf("message %s", message)
 
