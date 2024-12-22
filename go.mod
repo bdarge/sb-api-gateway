@@ -7,7 +7,7 @@ require (
 	github.com/go-playground/validator/v10 v10.23.0
 	github.com/gwatts/gin-adapter v1.0.0
 	github.com/jub0bs/fcors v0.9.2
-	github.com/spf13/viper v1.18.2
+	github.com/spf13/viper v1.18.0
 	github.com/swaggo/files v1.0.1
 	github.com/swaggo/gin-swagger v1.6.0
 	github.com/swaggo/swag v1.16.4
