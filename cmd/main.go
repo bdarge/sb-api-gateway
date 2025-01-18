@@ -34,21 +34,24 @@ import (
 // @in							header
 // @name						Authorization
 func main() {
+	var programLevel = new(slog.LevelVar)
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: programLevel}))
+	slog.SetDefault(logger)
+
 	environment := os.Getenv("ENV")
 	if environment == "" {
 		environment = "dev"
 	}
-
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	slog.SetDefault(logger)
-
-	slog.Info("start app")
 
 	conf, err := config.LoadConfig(environment)
 
 	if err != nil {
 		log.Fatalln("Failed at config", err)
 	}
+
+	programLevel.Set(conf.LogLevel)
+
+	slog.Info("Start api-gateway")
 
 	// Creates a router without any middleware by default
 	router := gin.New()
@@ -60,7 +63,7 @@ func main() {
 	// By default, gin.DefaultWriter = os.Stdout, change the format
 	router.Use(jsonLoggerMiddleware())
 
-	slog.Info("configure cors")
+	slog.Info("Configure cors")
 
 	//reading https://jub0bs.com/posts/2023-02-08-fearless-cors/#3-provide-support-for-private-network-access
 	cors, corsErr := fcors.AllowAccessWithCredentials(
@@ -113,7 +116,7 @@ func main() {
 	if err = router.Run(conf.Port); err != nil {
 		log.Fatalln("Failed at gin.Run", err)
 	}
-	slog.Info("api gateway started", "port", conf.Port)
+	slog.Info("Gateway started", "port", conf.Port)
 }
 
 func jsonLoggerMiddleware() gin.HandlerFunc {
