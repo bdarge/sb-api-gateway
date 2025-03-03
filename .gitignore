@@ -26,4 +26,4 @@ out
 
 *.log
 
-bin
+bin/
