@@ -16,7 +16,7 @@ type ServiceClient struct {
 
 // InitServiceClient init CurrencyClient
 func InitServiceClient(c *config.Config) currency.CurrencyClient {
-	cc, err := grpc.Dial(c.CurrencySvcURL, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	cc, err := grpc.NewClient(c.CurrencySvcURL, grpc.WithTransportCredentials(insecure.NewCredentials()))
 
 	if err != nil {
 		log.Printf("couldn't connect to %s: %s", c.CurrencySvcURL, err)

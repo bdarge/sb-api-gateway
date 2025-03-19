@@ -9,12 +9,14 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
+// ServiceClient client struct
 type ServiceClient struct {
 	Client ProfileServiceClient
 }
 
+// InitServiceClient initialize profile service client
 func InitServiceClient(c *config.Config) ProfileServiceClient {
-	cc, err := grpc.Dial(c.APISvcURL, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	cc, err := grpc.NewClient(c.APISvcURL, grpc.WithTransportCredentials(insecure.NewCredentials()))
 
 	if err != nil {
 		log.Printf("couldn't connect to %s: %s", c.APISvcURL, err)

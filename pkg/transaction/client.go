@@ -15,9 +15,9 @@ type ServiceClient struct {
 	Client transaction.TransactionServiceClient
 }
 
-// InitServiceClient initalize ServiceClient
+// InitServiceClient initialize ServiceClient
 func InitServiceClient(c *config.Config) transaction.TransactionServiceClient {
-	cc, err := grpc.Dial(c.APISvcURL, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	cc, err := grpc.NewClient(c.APISvcURL, grpc.WithTransportCredentials(insecure.NewCredentials()))
 
 	if err != nil {
 		log.Printf("couldn't connect to %s: %s", c.APISvcURL, err)
@@ -31,9 +31,9 @@ type TranItemServiceClient struct {
 	Client transactionItem.TransactionItemServiceClient
 }
 
-// InitTranItemServiceClient initalize TransactionItemServiceClient
+// InitTranItemServiceClient initialize TransactionItemServiceClient
 func InitTranItemServiceClient(c *config.Config) transactionItem.TransactionItemServiceClient {
-	cc, err := grpc.Dial(c.APISvcURL, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	cc, err := grpc.NewClient(c.APISvcURL, grpc.WithTransportCredentials(insecure.NewCredentials()))
 
 	if err != nil {
 		log.Printf("couldn't connect to %s: %s", c.APISvcURL, err)

@@ -16,7 +16,7 @@ type ServiceClient struct {
 
 // InitServiceClient init CustomerServiceClient
 func InitServiceClient(c *config.Config) customer.CustomerServiceClient {
-	cc, err := grpc.Dial(c.APISvcURL, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	cc, err := grpc.NewClient(c.APISvcURL, grpc.WithTransportCredentials(insecure.NewCredentials()))
 
 	if err != nil {
 		log.Printf("couldn't connect to %s: %s", c.APISvcURL, err)
