@@ -15,9 +15,7 @@ import (
 	"github.com/bdarge/api-gateway/pkg/profile"
 	"github.com/bdarge/api-gateway/pkg/transaction"
 	"github.com/gin-gonic/gin"
-	adapter "github.com/gwatts/gin-adapter"
-	"github.com/jub0bs/fcors"
-	"github.com/jub0bs/fcors/risky"
+	cors "github.com/rs/cors/wrapper/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"golang.org/x/exp/slog"
@@ -65,31 +63,16 @@ func main() {
 
 	slog.Info("Configure cors")
 
-	//reading https://jub0bs.com/posts/2023-02-08-fearless-cors/#3-provide-support-for-private-network-access
-	cors, corsErr := fcors.AllowAccessWithCredentials(
-		fcors.FromOrigins("https://localhost:4202", "http://localhost:4202", "http://localhost:3001"),
-		fcors.WithMethods(
-			http.MethodGet,
-			http.MethodDelete,
-			http.MethodPost,
-			http.MethodPut,
-			http.MethodPatch,
-			http.MethodOptions,
-		),
-		fcors.WithRequestHeaders(
-			"Authorization",
-			"Content-Type",
-		),
-		fcors.MaxAgeInSeconds(30),
-		risky.PrivateNetworkAccess(),
-	)
-
-	if corsErr != nil {
-		log.Fatalln("Failed at CORS setup", corsErr)
-	}
+	c := cors.New(cors.Options{
+    AllowedOrigins: []string{"http://localhost:*", "http://sb.odainfo.com"},
+		AllowedHeaders: []string{"Authorization", "Content-Type"},
+    AllowCredentials: true,
+    // Enable Debugging for testing, consider disabling in production
+    Debug: false,
+	})
 
 	// apply the CORS middleware to the router
-	router.Use(adapter.Wrap(cors))
+	router.Use(c)
 
 	// Recovery middleware recovers from any panics and writes a 500 if there was one.
 	router.Use(gin.Recovery())
