@@ -12,6 +12,7 @@ import (
 	"github.com/bdarge/api-gateway/pkg/config"
 	"github.com/bdarge/api-gateway/pkg/currency"
 	"github.com/bdarge/api-gateway/pkg/customer"
+	"github.com/bdarge/api-gateway/pkg/lang"
 	"github.com/bdarge/api-gateway/pkg/profile"
 	"github.com/bdarge/api-gateway/pkg/transaction"
 	"github.com/gin-gonic/gin"
@@ -94,6 +95,7 @@ func main() {
 		customer.RegisterRoutes(v1, &conf, &authSvc)
 		profile.RegisterRoutes(v1, &conf, &authSvc)
 		currency.RegisterRoutes(v1, &conf, &authSvc)
+		lang.RegisterRoutes(v1, &conf, &authSvc)
 	}
 
 	if err = router.Run(conf.Port); err != nil {
