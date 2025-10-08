@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// RegisterRoutes register routes
 func RegisterRoutes(r *gin.RouterGroup, c *config.Config) *ServiceClient {
 	svc := &ServiceClient{
 		Client: InitServiceClient(c),
@@ -30,5 +31,5 @@ func (svc *ServiceClient) Login(ctx *gin.Context) {
 
 // Refresh token
 func (svc *ServiceClient) refreshToken(ctx *gin.Context) {
-	RefreshToken(ctx, svc.Client, &svc.Config)
+	RefreshToken(ctx, svc.Client)
 }

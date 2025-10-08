@@ -25,11 +25,6 @@ type LoginResponse struct {
 	Token string
 }
 
-// Account to register
-type Account struct {
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required"`
-} // @name Account
 
 // Login Model
 type Login struct {
@@ -294,3 +289,16 @@ type CurrencyResponse struct {
 	Base     string      `json:"base"`
 	Value    string      `json:"value"`
 }
+
+// Lang Model
+type Lang struct {
+	ID 		   		uint32   	  `json:"id"`
+	Language    string      `json:"language"`
+	Currency    string      `json:"currency"`
+} // @name Lang
+
+
+// Langs Model
+type Langs struct {
+	Data  []Lang `json:"data"`
+} // @name Langs

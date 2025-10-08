@@ -2,24 +2,43 @@ package auth
 
 import (
 	"context"
-	. "github.com/bdarge/api-gateway/out/auth"
+	"log"
+	"net/http"
+	"os"
+
+	"github.com/bdarge/api-gateway/out/auth"
 	"github.com/bdarge/api-gateway/pkg/config"
 	"github.com/bdarge/api-gateway/pkg/models"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/exp/slog"
-	"log"
-	"net/http"
-	"os"
 )
+
+// Account to register
+type Account struct {
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required"`
+} // @name Account
+
+
+
+// LogValue redact sensitive values
+func (a Account) LogValue() slog.Value {
+	d := slog.GroupValue(
+		slog.String("email", "[redacted]"),
+		slog.String("password", "[redacted]"),
+	)
+	return d
+}
+
 
 // Register godoc
 // @Summary Register a user
 // @ID register
-// @Param register body models.Account true "Add account details"
-// @Success 200 {object} models.Account
+// @Param register body Account true "Add account details"
+// @Success 200 {object} Account
 // @Router /auth/register [post]
-func Register(ctx *gin.Context, c AuthServiceClient) {
-	body := models.Account{}
+func Register(ctx *gin.Context, c auth.AuthServiceClient) {
+	body := Account{}
 
 	if err := ctx.BindJSON(&body); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest,
@@ -29,13 +48,13 @@ func Register(ctx *gin.Context, c AuthServiceClient) {
 		return
 	}
 
-	res, err := c.Register(context.Background(), &RegisterRequest{
+	res, err := c.Register(context.Background(), &auth.RegisterRequest{
 		Email:    body.Email,
 		Password: body.Password,
 	})
 
 	if err != nil {
-		if res.Status >= 400 {
+		if res != nil && res.Status >= 400 {
 			ctx.AbortWithStatusJSON(int(res.Status), res.Error)
 		} else {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError,
@@ -49,16 +68,20 @@ func Register(ctx *gin.Context, c AuthServiceClient) {
 	ctx.JSON(int(res.Status), &res)
 }
 
+
 // Login godoc
 // @Summary Authenticate a user
 // @ID login
 // @Param login body models.Login true "Add login credentials"
 // @Success 200 {object} models.LoginResponse
 // @Router /auth/login [post]
-func Login(ctx *gin.Context, authClient AuthServiceClient, config *config.Config) {
-	b := models.Account{}
-	log.Printf("Authenticate %v", ctx.Request.Body)
-	if err := ctx.ShouldBindJSON(&b); err != nil {
+func Login(ctx *gin.Context, authClient auth.AuthServiceClient, config *config.Config) {
+	logger := slog.New(slog.NewJSONHandler(os.Stdout,  &slog.HandlerOptions{}))
+	slog.SetDefault(logger)
+
+	account := Account{}
+	log.Printf("Start authenticating with email and password")
+	if err := ctx.ShouldBindJSON(&account); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest,
 			gin.H{
 				"error":   "VALIDATEERR-1",
@@ -66,15 +89,15 @@ func Login(ctx *gin.Context, authClient AuthServiceClient, config *config.Config
 		return
 	}
 
-	log.Printf("Request mapped, %v", b)
+	slog.Info("Request mapped", "account", account)
 
-	result, err := authClient.Login(context.Background(), &LoginRequest{
-		Email:    b.Email,
-		Password: b.Password,
+	result, err := authClient.Login(context.Background(), &auth.LoginRequest{
+		Email:    account.Email,
+		Password: account.Password,
 	})
 
-	if err != nil || result.Status >= 400 {
-		if err != nil && result.Status >= 400 {
+	if err != nil {
+		if result != nil && result.Status >= 400 {
 			ctx.AbortWithStatusJSON(int(result.Status), result.Error)
 		} else {
 			_ = ctx.AbortWithError(http.StatusInternalServerError, err)
@@ -82,7 +105,7 @@ func Login(ctx *gin.Context, authClient AuthServiceClient, config *config.Config
 		return
 	}
 
-	res := &LoginResponse{
+	res := &auth.LoginResponse{
 		Status: result.Status,
 		Token:  result.Token,
 		Error:  result.Error,
@@ -102,23 +125,28 @@ func Login(ctx *gin.Context, authClient AuthServiceClient, config *config.Config
 // @ID refresh_token
 // @Success 200 {object} models.LoginResponse
 // @Router /auth/refresh-token [post]
-func RefreshToken(ctx *gin.Context, c AuthServiceClient, _ *config.Config) {
+func RefreshToken(ctx *gin.Context, c auth.AuthServiceClient) {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	slog.SetDefault(logger)
 
 	token, err := ctx.Cookie("token")
+
 	if err != nil {
 		slog.Error("Cookie not found", "error", err)
-		ctx.AbortWithStatusJSON(403, "Not authorized")
+		ctx.AbortWithStatusJSON(403, models.ErrorResponse{
+					Error:   "ACTIONERR-3",
+					Message: "Not authorized"})
 		return
 	}
-	res, err := c.RefreshToken(context.Background(), &RefreshTokenRequest{
+	res, err := c.RefreshToken(context.Background(), &auth.RefreshTokenRequest{
 		Token: token,
 	})
 
-	if err != nil || res.Status >= 400 {
+	if err != nil {
 		slog.Error("Failed to refresh token", "error", err)
-		ctx.AbortWithStatusJSON(403, "Not authorized")
+		ctx.AbortWithStatusJSON(403, models.ErrorResponse{
+					Error:   "ACTIONERR-3",
+					Message: "Not authorized"})
 		return
 	}
 
