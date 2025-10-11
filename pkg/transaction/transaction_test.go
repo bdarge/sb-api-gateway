@@ -4,6 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
+	"net/http/httptest"
+	"net/url"
+	"reflect"
+	"testing"
+	"time"
+
 	. "github.com/bdarge/api-gateway/out/model"
 	. "github.com/bdarge/api-gateway/out/transaction"
 	"github.com/bdarge/api-gateway/pkg/models"
@@ -11,12 +18,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"google.golang.org/grpc"
 	"google.golang.org/protobuf/types/known/timestamppb"
-	"io"
-	"net/http/httptest"
-	"net/url"
-	"reflect"
-	"testing"
-	"time"
 )
 
 type MockRequestServiceClient struct {
@@ -62,8 +63,8 @@ func TestCreateTransaction(t *testing.T) {
 			error: nil,
 			order: models.Transaction{
 				Description:  "motor",
-				CreatedBy:    12341,
-				CustomerID:   8983,
+				CreatedBy:    12,
+				CustomerID:   8,
 				DeliveryDate: time.Now().Add(time.Hour * 24 * 7 * time.Duration(10)),
 				RequestType:  "order",
 				Items:        []models.TransactionItem{{Description: "motor key", Qty: "1", Unit: "birr", UnitPrice: "23.4"}},
@@ -74,16 +75,23 @@ func TestCreateTransaction(t *testing.T) {
 		{
 			name:  "should return bad request #1",
 			error: map[string][]models.ErrorMsg{"errors": {{Field: "Description", Message: "This field is required"}}},
-			order: models.Transaction{CreatedBy: 12341, CustomerID: 8983,
+			order: models.Transaction{
+				CreatedBy: 12341,
+				CustomerID: 8983,
 				DeliveryDate: time.Now().Add(time.Hour * 24 * 7 * time.Duration(10)),
-				RequestType:  "order"},
+				RequestType:  "order",
+			},
 			status: 400,
 		},
 		{
 			name:  "should return bad request #2",
 			error: map[string][]models.ErrorMsg{"errors": {{Field: "CreatedBy", Message: "This field is required"}}},
-			order: models.Transaction{Description: "motor", CustomerID: 8983,
-				DeliveryDate: time.Now().Add(time.Hour * 24 * 7 * time.Duration(10)), RequestType: "order"},
+			order: models.Transaction{
+				Description: "motor",
+				CustomerID: 8983,
+				DeliveryDate: time.Now().Add(time.Hour * 24 * 7 * time.Duration(10)),
+				RequestType: "order",
+			},
 			status: 400,
 		},
 		{
@@ -110,9 +118,8 @@ func TestCreateTransaction(t *testing.T) {
 		client.CreateTransactionFunc = func(ctx context.Context, in *CreateTransactionRequest, opts ...grpc.CallOption) (*CreateTransactionResponse, error) {
 			if tt.status > 201 {
 				return nil, errors.New("some backend service grpc error")
-			} else {
-				return tt.data, nil
 			}
+			return tt.data, nil
 		}
 		CreateTransaction(c, client)
 
@@ -149,20 +156,21 @@ func TestCreateTransaction(t *testing.T) {
 
 func TestGetTransaction(t *testing.T) {
 	now := time.Now()
-	nowInUtc := &now
+	nowInUtc := now.UTC()
+
 	// test cases
 	tests := []struct {
 		name         string
-		error        map[string][]models.ErrorMsg
+		error        string
 		generalError map[string]string
 		data         *TransactionData
-		responseData models.Transaction
+		expected models.Transaction
 		status       int
 		params       []gin.Param
 	}{
 		{
-			name:  "should get a disposition:",
-			error: nil,
+			name: "Should return a disposition:",
+			error: "",
 			params: []gin.Param{
 				{
 					Key:   "id",
@@ -170,29 +178,35 @@ func TestGetTransaction(t *testing.T) {
 				},
 			},
 			status: 200,
-			responseData: models.Transaction{
+			expected: models.Transaction{
 				Model: models.Model{
 					ID:        3562,
-					CreatedAt: nowInUtc,
-					UpdatedAt: nowInUtc,
-					DeletedAt: nil,
+					CreatedAt: &nowInUtc,
+					UpdatedAt: &nowInUtc,
+					DeletedAt: &time.Time{},
 				},
 				CreatedBy:   30,
 				CustomerID:  2,
 				Description: "motor",
 				RequestType: "order",
+				Currency: "usd",
 				Items: []models.TransactionItem{
 					{
 						Model: models.Model{
 							ID:        1,
-							CreatedAt: nowInUtc,
-							UpdatedAt: nowInUtc,
-							DeletedAt: nil,
+							CreatedAt: &nowInUtc,
+							UpdatedAt: &nowInUtc,
+							DeletedAt: &time.Time{},
 						},
 						Description: "motor key",
 						Qty:         "1",
 						Unit:        "birr",
 						UnitPrice:   "23.4",
+					},
+				},
+				Customer: models.Customer{
+					Model: models.Model{
+							ID:        2,
 					},
 				},
 				DeliveryDate: nowInUtc.Add(time.Hour * 24 * 7 * time.Duration(10)),
@@ -206,6 +220,7 @@ func TestGetTransaction(t *testing.T) {
 				CreatedAt:   timestamppb.New(now),
 				UpdatedAt:   timestamppb.New(now),
 				DeletedAt:   timestamppb.New(time.Time{}),
+				Currency: 	 "usd",
 				Items: []*TransactionItem{
 					{
 						Id:          1,
@@ -218,11 +233,12 @@ func TestGetTransaction(t *testing.T) {
 						DeletedAt:   timestamppb.New(time.Time{}),
 					},
 				},
+				Customer: &CustomerData{ Id: 2},
 				DeliveryDate: timestamppb.New(nowInUtc.Add(time.Hour * 24 * 7 * time.Duration(10))),
 			},
 		},
 		{
-			name:         "should return an error:",
+			name: "Should return an error:",
 			generalError: map[string]string{"error": "ACTIONERR-1", "message": "An error happened, please check later."},
 			params: []gin.Param{
 				{
@@ -240,11 +256,13 @@ func TestGetTransaction(t *testing.T) {
 		client.GetTransactionFunc = func(ctx context.Context, in *GetTransactionRequest, opts ...grpc.CallOption) (*GetTransactionResponse, error) {
 			if tt.status > 200 {
 				return nil, errors.New("some backend service grpc error")
-			} else {
-				return &GetTransactionResponse{
-					Data: tt.data,
-				}, nil
 			}
+
+			return &GetTransactionResponse{
+				Status: uint32(tt.status),
+				Error: tt.error,
+				Data: tt.data,
+			}, nil
 		}
 		ctx := utils.GetTestGinContext(w)
 
@@ -267,14 +285,15 @@ func TestGetTransaction(t *testing.T) {
 				continue
 			}
 
-			if !reflect.DeepEqual(response, &tt.responseData) {
-				t.Error(tt.name, "data doesn't match,", "expected:", tt.responseData, "actual:", string(b))
+			if !reflect.DeepEqual(*response, tt.expected) {
+				t.Error(tt.name, "data doesn't match,", "expected:", tt.expected, "actual:", *response)
 			}
+			continue
 		}
 
 		if w.Code > 200 {
 			b, _ := io.ReadAll(w.Body)
-			if tt.error != nil {
+			if tt.error != "" {
 				var targetedError map[string][]models.ErrorMsg
 				if err := json.Unmarshal(b, &targetedError); err != nil {
 					t.Error(tt.name, "invalid error type", string(b))
@@ -299,7 +318,8 @@ func TestGetTransaction(t *testing.T) {
 
 func TestGetTransactions(t *testing.T) {
 	now := time.Now()
-	nowInUtc := &now
+	nowInUtc := now.UTC()
+
 	// test cases
 	tests := []struct {
 		name         string
@@ -321,9 +341,9 @@ func TestGetTransactions(t *testing.T) {
 					{
 						Model: models.Model{
 							ID:        3562,
-							CreatedAt: nowInUtc,
-							UpdatedAt: nowInUtc,
-							DeletedAt: nil,
+							CreatedAt: &nowInUtc,
+							UpdatedAt: &nowInUtc,
+							DeletedAt: &time.Time{},
 						},
 						Description:  "motor",
 						RequestType:  "order",
@@ -360,11 +380,11 @@ func TestGetTransactions(t *testing.T) {
 					{
 						Model: models.Model{
 							ID:        9569,
-							CreatedAt: nowInUtc,
-							UpdatedAt: nowInUtc,
-							DeletedAt: nil,
+							CreatedAt: &nowInUtc,
+							UpdatedAt: &nowInUtc,
+							DeletedAt: &time.Time{},
 						},
-						Description: "motor", RequestType: "queue",
+						Description: "motor", RequestType: "order",
 						DeliveryDate: nowInUtc.Add(time.Hour * 24 * 7 * time.Duration(10)),
 					},
 				},
@@ -373,7 +393,7 @@ func TestGetTransactions(t *testing.T) {
 				Limit: 10, Page: 1, Total: 1,
 				Data: []*TransactionData{{
 					Id:          9569,
-					Description: "motor", RequestType: "queue",
+					Description: "motor", RequestType: "order",
 					CreatedAt:    timestamppb.New(now),
 					UpdatedAt:    timestamppb.New(now),
 					DeletedAt:    timestamppb.New(time.Time{}),

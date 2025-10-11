@@ -14,6 +14,22 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [ubuntu-latest]
+    runs-on: ${{ matrix.platform }}
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version-file: go.mod
+      id: go
+    - name: Test
+      run: go test -race $(go list ./... | grep -v out | grep -v docs)
   build-and-push-image:
     runs-on: ubuntu-latest
     permissions:

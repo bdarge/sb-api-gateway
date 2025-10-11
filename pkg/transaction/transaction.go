@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
+	"log/slog"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/bdarge/api-gateway/out/model"
@@ -17,6 +19,11 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
+func logger() {
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	slog.SetDefault(logger)
+}
+
 // CreateTransaction create a transaction
 // @Summary Create a transaction, an order or a quote
 // @ID create_transaction
@@ -27,10 +34,11 @@ import (
 // @Failure 500 {object} ErrorResponse
 // @Security Bearer
 func CreateTransaction(ctx *gin.Context, c transaction.TransactionServiceClient) {
+	logger()
 	t := models.NewTransaction{}
 
 	if err := ctx.BindJSON(&t); err != nil {
-		log.Printf("Error: %s", err)
+		slog.Error("Failed to bind to models.NewTransaction", "error", err.Error())
 		var ve validator.ValidationErrors
 		if errors.As(err, &ve) { /**/
 			out := make([]models.ErrorMsg, len(ve))
@@ -48,7 +56,7 @@ func CreateTransaction(ctx *gin.Context, c transaction.TransactionServiceClient)
 		return
 	}
 
-	log.Printf("Create transaction %v", t)
+	slog.Info("Create a new transaction", "NewTransaction", t)
 
 	inBytes, err := json.Marshal(t)
 	if err != nil {
@@ -61,27 +69,28 @@ func CreateTransaction(ctx *gin.Context, c transaction.TransactionServiceClient)
 	}
 
 	var data transaction.CreateTransactionRequest
-	log.Printf("stringfly data in bytes: %s", inBytes)
+	slog.Debug("stringfly data in bytes", "InBytes", inBytes)
 
 	// ignore unknown fields
 	unMarshaller := &protojson.UnmarshalOptions{DiscardUnknown: true}
 	err = unMarshaller.Unmarshal(inBytes, &data)
 
 	if err != nil {
-		log.Printf("Error: %v", err)
+		slog.Error("Failed to create request object", "error", err.Error())
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError,
 			gin.H{
 				"error":   "ACTIONERR-1",
 				"message": "An error happened, please check later."})
 		return
 	}
-	log.Printf("mesage: %v", &data)
+
+	slog.Debug("Request object created", "Request", &data)
 
 	res, err := c.CreateTransaction(context.Background(), &data)
 
 	if err != nil || res.Status >= 400 {
 		if res != nil && res.Status >= 400 {
-			log.Printf("Server Error: %v", res.Error)
+			slog.Error("Server Error", "error", res.Error)
 			ctx.AbortWithStatusJSON(int(res.Status),
 				models.ErrorResponse{
 					Error:   "ACTIONERR-2",
@@ -107,44 +116,46 @@ func CreateTransaction(ctx *gin.Context, c transaction.TransactionServiceClient)
 // @Failure 500 {object} ErrorResponse
 // @Security Bearer
 func GetTransaction(ctx *gin.Context, c transaction.TransactionServiceClient) {
+	logger()
 	id, _ := strconv.ParseInt(ctx.Param("id"), 10, 32)
 
 	res, err := c.GetTransaction(context.Background(), &transaction.GetTransactionRequest{
 		Id: uint32(id),
 	})
 
-	log.Printf("backend returned data: %v", res)
+	slog.Info("Backend returned data", "TransactionResponse", res)
 
-	if err != nil || res.Status >= 400 {
-		if res.Status >= 400 {
-			ctx.AbortWithStatusJSON(int(res.Status),
-				models.ErrorResponse{
-					Error:   "ACTIONERR-2",
-					Message: res.Error})
-		} else {
-			ctx.AbortWithStatusJSON(http.StatusInternalServerError,
-				models.ErrorResponse{
-					Error:   "ACTIONERR-1",
-					Message: "An error happened, please check later."})
-		}
+	if res != nil && res.Status >= 400 {
+		ctx.AbortWithStatusJSON(int(res.Status),
+			models.ErrorResponse{
+				Error:   "ACTIONERR-2",
+				Message: res.Error})
+		return
+	}
+
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError,
+			models.ErrorResponse{
+				Error:   "ACTIONERR-1",
+				Message: "An error happened, please check later."})
 		return
 	}
 
 	response, err := convertToModel(res.Data)
 
-	if err != nil || res.Status >= 400 {
-		if res.Status >= 400 {
-			ctx.AbortWithStatusJSON(int(res.Status),
-				models.ErrorResponse{
-					Error:   "ACTIONERR-2",
-					Message: res.Error})
-		} else {
-			ctx.AbortWithStatusJSON(http.StatusInternalServerError,
-				models.ErrorResponse{
-					Error:   "ACTIONERR-1",
-					Message: "An error happened, please check later."})
-		}
+	if res != nil && res.Status >= 400 {
+		ctx.AbortWithStatusJSON(int(res.Status),
+			models.ErrorResponse{
+				Error:   "ACTIONERR-2",
+				Message: res.Error})
 		return
+	}
+
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError,
+			models.ErrorResponse{
+				Error:   "ACTIONERR-1",
+				Message: "An error happened, please check later."})
 	}
 
 	ctx.JSON(http.StatusOK, response)
@@ -160,7 +171,8 @@ func GetTransaction(ctx *gin.Context, c transaction.TransactionServiceClient) {
 // @Router /transaction [Get]
 // @Security Bearer
 func GetTransactions(ctx *gin.Context, c transaction.TransactionServiceClient) {
-	log.Printf("request uri %s", ctx.Request.RequestURI)
+	logger()
+	slog.Info("request", "url", ctx.Request.RequestURI)
 	var request = &models.TransactionsRequest{}
 
 	err := ctx.ShouldBindQuery(&request)
@@ -173,7 +185,7 @@ func GetTransactions(ctx *gin.Context, c transaction.TransactionServiceClient) {
 			}
 			ctx.AbortWithStatusJSON(http.StatusBadRequest, models.ErrorResponse400{Errors: out})
 		} else {
-			log.Printf("Error: %v", err)
+			slog.Error("Failed to get transactions", "error", err)
 			ctx.AbortWithStatusJSON(http.StatusBadRequest,
 				gin.H{
 					"error":   "ACTIONERR-1",
@@ -184,14 +196,14 @@ func GetTransactions(ctx *gin.Context, c transaction.TransactionServiceClient) {
 
 	inBytes, err := json.Marshal(request)
 	if err != nil {
-		log.Printf("Error: %v", err)
+		slog.Error("Failed to get transactions", "error", err)
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError,
 			gin.H{
 				"error":   "ACTIONERR-1",
 				"message": "An error happened, please check later."})
 		return
 	}
-	log.Printf("stringfly data in bytes: %s", inBytes)
+	slog.Debug("stringfly request in bytes", "bytes", inBytes)
 
 	var requestMessage transaction.GetTransactionsRequest
 
@@ -199,32 +211,37 @@ func GetTransactions(ctx *gin.Context, c transaction.TransactionServiceClient) {
 	// unMarshaller := &protojson.UnmarshalOptions{DiscardUnknown: true}
 	err = protojson.Unmarshal(inBytes, &requestMessage)
 	if err != nil {
-		log.Printf("Error: %v", err)
+		slog.Error("Failed to get transactions", "error", err)
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError,
 			gin.H{
 				"error":   "ACTIONERR-1",
 				"message": "An error happened, please check later."})
 		return
 	}
-	log.Printf("request message: %v", &requestMessage)
+
+	slog.Info("Request", "TransactionsRequest", &requestMessage)
 	res, err := c.GetTransactions(context.Background(), &requestMessage)
 
-	if err != nil || res.Status >= 400 {
-		if err != nil {
-			log.Printf("Error: %v", err)
-		} else {
-			log.Printf("Error: %v", res)
-		}
+	if res != nil && res.Status >= 400 {
+		ctx.AbortWithStatusJSON(int(res.Status),
+			models.ErrorResponse{
+				Error:   "ACTIONERR-2",
+				Message: res.Error})
+				return
+	}
+	if err != nil {
+		slog.Error("Failed to get transactions", "error", err)
+
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError,
 			gin.H{
 				"error":   "ACTIONERR-1",
 				"message": "An error happened, please check later."})
 		return
 	}
-
+	
 	message, err := protojson.Marshal(res)
 	if err != nil {
-		log.Printf("failed to cast type to bytes %v", err)
+		slog.Error("Failed to cast type to bytes", "error", err)
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError,
 			gin.H{
 				"error":   "ACTIONERR-1",
@@ -232,7 +249,7 @@ func GetTransactions(ctx *gin.Context, c transaction.TransactionServiceClient) {
 		return
 	}
 
-	log.Printf("message: %s", message)
+	slog.Debug("Get transactions response", "response", message)
 
 	var data models.Transactions
 	err = json.Unmarshal(message, &data)
@@ -256,12 +273,15 @@ func GetTransactions(ctx *gin.Context, c transaction.TransactionServiceClient) {
 // @Failure 500 {object} ErrorResponse
 // @Security Bearer
 func UpdateTransaction(ctx *gin.Context, c transaction.TransactionServiceClient) {
+	logger()
 	id, _ := strconv.ParseInt(ctx.Param("id"), 10, 32)
-	log.Printf("Update transaction (id = %d)", id)
+
+	slog.Info("Update transaction", "ID", id)
+
 	u := models.UpdateTransaction{}
 
 	if err := ctx.BindJSON(&u); err != nil {
-		log.Printf("Error: %s", err)
+		slog.Error("Failed to update", "error", err)
 		var ve validator.ValidationErrors
 		if errors.As(err, &ve) {
 			out := make([]models.ErrorMsg, len(ve))
@@ -278,11 +298,9 @@ func UpdateTransaction(ctx *gin.Context, c transaction.TransactionServiceClient)
 		return
 	}
 
-	log.Printf("update transaction")
-
 	inBytes, err := json.Marshal(u)
 	if err != nil {
-		log.Printf("Error: %v", err)
+		slog.Error("Failed to update", "error", err)
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError,
 			gin.H{
 				"error":   "ACTIONERR-1",
@@ -291,21 +309,22 @@ func UpdateTransaction(ctx *gin.Context, c transaction.TransactionServiceClient)
 	}
 
 	var update transaction.UpdateTransactionData
-	log.Printf("stringfly data in bytes: %s", inBytes)
+	slog.Debug("stringfly data in bytes", "bytes", inBytes)
 
 	// ignore unknown fields
 	unMarshaller := &protojson.UnmarshalOptions{DiscardUnknown: true}
 	err = unMarshaller.Unmarshal(inBytes, &update)
 
 	if err != nil {
-		log.Printf("Error: %v", err)
+		slog.Error("Failed to update", "error", err)
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError,
 			gin.H{
 				"error":   "ACTIONERR-1",
 				"message": "An error happened, please check later."})
 		return
 	}
-	log.Printf("mesage: %v", &update)
+
+	slog.Debug("Update request object", "Request", &update)
 
 	res, err := c.UpdateTransaction(context.Background(), &transaction.UpdateTransactionRequest{
 		Id:   uint32(id),
@@ -313,13 +332,9 @@ func UpdateTransaction(ctx *gin.Context, c transaction.TransactionServiceClient)
 	})
 
 	response, err := convertToModel(res.Data)
-	if err == nil && res != nil && res.Status < 400 {
-		ctx.JSON(http.StatusOK, response)
-		return
-	}
 
 	if res != nil && res.Status >= 400 {
-		log.Printf("Server Error: %v", res.Error)
+		slog.Error("Failed to update", "error", err)
 		ctx.AbortWithStatusJSON(int(res.Status),
 			models.ErrorResponse{
 				Error:   "ACTIONERR-2",
@@ -327,11 +342,15 @@ func UpdateTransaction(ctx *gin.Context, c transaction.TransactionServiceClient)
 		return
 	}
 
-	log.Printf("Error when updating: %v", err)
-	ctx.AbortWithStatusJSON(http.StatusInternalServerError,
-		models.ErrorResponse{
-			Error:   "ACTIONERR-1",
-			Message: "An error happened, please check later."})
+	if err != nil {
+		slog.Error("Failed to update", "error", err)
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError,
+			models.ErrorResponse{
+				Error:   "ACTIONERR-1",
+				Message: "An error happened, please check later."})
+	}
+
+	ctx.JSON(http.StatusOK, response)
 }
 
 // DeleteTransaction delete
@@ -342,44 +361,46 @@ func UpdateTransaction(ctx *gin.Context, c transaction.TransactionServiceClient)
 // @Failure 500 {object} ErrorResponse
 // @Security Bearer
 func DeleteTransaction(ctx *gin.Context, c transaction.TransactionServiceClient) {
+	logger()
 	id, _ := strconv.ParseInt(ctx.Param("id"), 10, 32)
-	log.Printf("Delete transaction with id: %d", id)
+
+	slog.Info("Delete transaction", "ID", id)
+
 	res, err := c.DeleteTransaction(context.Background(), &transaction.DeleteTransactionRequest{
 		Id: uint32(id),
 	})
 
-	if err == nil && res != nil && res.Status < 400 {
-		ctx.Status(http.StatusNoContent)
-		return
-	}
-
 	if res != nil && res.Status >= 400 {
-		log.Printf("Server Error: %v", res.Error)
+		slog.Error("Failed to delete", "error", res.Error)
 		ctx.AbortWithStatusJSON(int(res.Status),
 			models.ErrorResponse{
 				Error:   "ACTIONERR-2",
 				Message: res.Error})
 		return
 	}
+	if err != nil {
+		slog.Error("Failed to delete", "error", res.Error)
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError,
+			models.ErrorResponse{
+				Error:   "ACTIONERR-1",
+				Message: "An error happened, please check later."})
+	}
 
-	log.Printf("Server Error: %v", err)
-	ctx.AbortWithStatusJSON(http.StatusInternalServerError,
-		models.ErrorResponse{
-			Error:   "ACTIONERR-1",
-			Message: "An error happened, please check later."})
+	ctx.Status(http.StatusNoContent)
 }
 
 func convertToModel(data *model.TransactionData) (*models.Transaction, error) {
 	message, err := protojson.Marshal(data)
-	log.Printf("message %s", message)
+	slog.Info("Unmarshal", "Transaction", string(message))
 
 	var d models.Transaction
 	err = json.Unmarshal(message, &d)
 
 	if err != nil {
-		log.Printf("failed to cast type, %v, %v", err, string(message))
+		slog.Error("Failed to cast type", "data", string(message), "error", err)
 		return nil, err
 	}
 
+	slog.Info("Unmarshaled", "Transaction", d)
 	return &d, nil
 }
