@@ -55,13 +55,13 @@ func TestCreateTransaction(t *testing.T) {
 		error        map[string][]models.ErrorMsg
 		generalError map[string]string
 		status       int
-		order        models.Transaction
+		order        models.NewTransaction
 		data         *CreateTransactionResponse
 	}{
 		{
 			name:  "should create a request",
 			error: nil,
-			order: models.Transaction{
+			order: models.NewTransaction{
 				Description:  "motor",
 				CreatedBy:    12,
 				CustomerID:   8,
@@ -75,7 +75,7 @@ func TestCreateTransaction(t *testing.T) {
 		{
 			name:  "should return bad request #1",
 			error: map[string][]models.ErrorMsg{"errors": {{Field: "Description", Message: "This field is required"}}},
-			order: models.Transaction{
+			order: models.NewTransaction{
 				CreatedBy: 12341,
 				CustomerID: 8983,
 				DeliveryDate: time.Now().Add(time.Hour * 24 * 7 * time.Duration(10)),
@@ -86,7 +86,7 @@ func TestCreateTransaction(t *testing.T) {
 		{
 			name:  "should return bad request #2",
 			error: map[string][]models.ErrorMsg{"errors": {{Field: "CreatedBy", Message: "This field is required"}}},
-			order: models.Transaction{
+			order: models.NewTransaction{
 				Description: "motor",
 				CustomerID: 8983,
 				DeliveryDate: time.Now().Add(time.Hour * 24 * 7 * time.Duration(10)),
@@ -97,7 +97,7 @@ func TestCreateTransaction(t *testing.T) {
 		{
 			name:         "should return a general error when server failed to create a disposition",
 			generalError: map[string]string{"error": "ACTIONERR-1", "message": "An error happened, please check later."},
-			order: models.Transaction{Description: "motor", CreatedBy: 12341, CustomerID: 8983,
+			order: models.NewTransaction{Description: "motor", CreatedBy: 12341, CustomerID: 8983,
 				DeliveryDate: time.Now().Add(time.Hour * 24 * 7 * time.Duration(10)), RequestType: "order"},
 			status: 500,
 			data:   nil,
@@ -105,7 +105,7 @@ func TestCreateTransaction(t *testing.T) {
 		{
 			name:  "should return bad request #3",
 			error: map[string][]models.ErrorMsg{"errors": {{Field: "RequestType", Message: "Should be one of the following: 'order', or 'quote'"}}},
-			order: models.Transaction{Description: "motor", CreatedBy: 12341, CustomerID: 8983,
+			order: models.NewTransaction{Description: "motor", CreatedBy: 12341, CustomerID: 8983,
 				DeliveryDate: time.Now().Add(time.Hour * 24 * 7 * time.Duration(10)), RequestType: "cat"},
 			status: 400,
 		},
@@ -186,7 +186,6 @@ func TestGetTransaction(t *testing.T) {
 					DeletedAt: &time.Time{},
 				},
 				CreatedBy:   30,
-				CustomerID:  2,
 				Description: "motor",
 				RequestType: "order",
 				Currency: "usd",
@@ -216,7 +215,6 @@ func TestGetTransaction(t *testing.T) {
 				Description: "motor",
 				RequestType: "order",
 				CreatedBy:   30,
-				CustomerId:  2,
 				CreatedAt:   timestamppb.New(now),
 				UpdatedAt:   timestamppb.New(now),
 				DeletedAt:   timestamppb.New(time.Time{}),

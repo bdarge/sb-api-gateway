@@ -71,7 +71,6 @@ type Transaction struct {
 	Currency     string            `json:"currency"`
 	Description  string            `json:"description" binding:"required"`
 	DeliveryDate time.Time         `json:"deliveryDate" binding:"required"`
-	CustomerID   uint32            `json:"customerId" binding:"required"`
 	CreatedBy    uint32            `json:"createdBy" binding:"required"`
 	RequestType  string            `json:"requestType" binding:"required,oneof=order quote"`
 	Customer     Customer          `json:"customer" binding:"not_required"`
