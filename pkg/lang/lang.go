@@ -3,8 +3,9 @@ package lang
 import (
 	"context"
 	"encoding/json"
-	"log"
+	"log/slog"
 	"net/http"
+	"os"
 
 	"github.com/bdarge/api-gateway/out/lang"
 	"github.com/bdarge/api-gateway/pkg/models"
@@ -12,13 +13,19 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
+func logger() {
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	slog.SetDefault(logger)
+}
+
 // GetLang godoc
 // @Summary Get list of supported languages
 // @ID lang
 // @Success 200 {object} models.Langs
 // @Router /lang [get]
 func GetLang(ctx *gin.Context, client lang.LangServiceClient) {
-	log.Printf("request uri %s", ctx.Request.RequestURI)
+	logger()
+	slog.Info("request", "uri", ctx.Request.RequestURI)
 
 	res, err := client.GetLang(context.Background(), &lang.LangGetRequest{})
 
@@ -39,7 +46,7 @@ func GetLang(ctx *gin.Context, client lang.LangServiceClient) {
 
 	message, err := protojson.Marshal(res)
 	if err != nil {
-		log.Printf("failed to cast type to bytes %v", err)
+		slog.Info("failed to cast type to bytes %v", err)
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError,
 			gin.H{
 				"error":   "ACTIONERR-1",
@@ -47,12 +54,12 @@ func GetLang(ctx *gin.Context, client lang.LangServiceClient) {
 		return
 	}
 
-	log.Printf("message: %s", message)
+	slog.Info("Request response", "message", message)
 
 	var data models.Langs
 	err = json.Unmarshal(message, &data)
 	if err != nil {
-		log.Printf("failed to cast type, %v, %v", err, string(message))
+		slog.Error("Failed to cast type", "error", err)
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError,
 			gin.H{
 				"error":   "ACTIONERR-1",
