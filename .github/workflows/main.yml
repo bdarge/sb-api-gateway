@@ -31,7 +31,7 @@ jobs:
     - name: Install Protoc
       uses: arduino/setup-protoc@v3
     - name: Test
-      run: go test -race $(go list ./... | grep -v out | grep -v docs)
+      run: make proto && go test -race $(go list ./... | grep -v out | grep -v docs)
   build-and-push-image:
     runs-on: ubuntu-latest
     permissions:
