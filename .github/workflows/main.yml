@@ -27,10 +27,11 @@ jobs:
         token: ${{ secrets.PAT }}
         submodules: true
     - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version-file: go.mod
       id: go
+      uses: actions/setup-go@v6
+      with:
+        go-version: '^1.25.1'
+        run: go version
     - name: Install Protoc
       uses: arduino/setup-protoc@v3
     - name: Install proto gen
