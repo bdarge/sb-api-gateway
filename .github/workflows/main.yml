@@ -28,6 +28,8 @@ jobs:
       with:
         go-version-file: go.mod
       id: go
+    - name: proto
+      run: make proto
     - name: Test
       run: go test -race $(go list ./... | grep -v out | grep -v docs)
   build-and-push-image:
