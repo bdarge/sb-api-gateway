@@ -80,7 +80,7 @@ func Login(ctx *gin.Context, authClient auth.AuthServiceClient, config *config.C
 	slog.SetDefault(logger)
 
 	account := Account{}
-	log.Printf("Start authenticating with email and password")
+	slog.Info("Start authenticating with email and password")
 	if err := ctx.ShouldBindJSON(&account); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest,
 			gin.H{
