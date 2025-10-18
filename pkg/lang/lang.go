@@ -46,7 +46,7 @@ func GetLang(ctx *gin.Context, client lang.LangServiceClient) {
 
 	message, err := protojson.Marshal(res)
 	if err != nil {
-		slog.Info("failed to cast type to bytes %v", err)
+		slog.Info("failed to cast type to bytes", "error", err)
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError,
 			gin.H{
 				"error":   "ACTIONERR-1",
