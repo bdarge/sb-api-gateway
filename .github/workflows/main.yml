@@ -34,14 +34,13 @@ jobs:
         run: |
           go version
           echo $(go env GOPATH)/bin >> $GITHUB_PATH
-
+    - name: Install Protoc
+      uses: arduino/setup-protoc@v3
     - name: Install proto gen
       run: |
         go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.10
         go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.5.1
         make proto
-    - name: Install Protoc
-      uses: arduino/setup-protoc@v3
     - name: Test
       run: go test -race $(go list ./... | grep -v out | grep -v docs)
   build-and-push-image:
