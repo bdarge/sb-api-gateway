@@ -68,6 +68,7 @@ func main() {
     AllowedOrigins: []string{"http://localhost:*", "http://sb.odainfo.com"},
 		AllowedHeaders: []string{"Authorization", "Content-Type"},
     AllowCredentials: true,
+		AllowedMethods: []string{"HEAD", "POST", "GET", "PATCH", "DELETE"},
     // Enable Debugging for testing, consider disabling in production
     Debug: false,
 	})
