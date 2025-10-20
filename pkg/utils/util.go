@@ -2,8 +2,6 @@ package utils
 
 import (
 	"encoding/json"
-	"log/slog"
-	"os"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
@@ -42,10 +40,4 @@ func GetErrorMsg(fe validator.FieldError) string {
 		return result
 	}
 	return "Unknown error"
-}
-
-// Logger setup logger
-func Logger() {
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	slog.SetDefault(logger)
 }

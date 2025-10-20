@@ -29,7 +29,6 @@ import (
 // @Failure 500 {object} ErrorResponse
 // @Security Bearer
 func CreateTransaction(ctx *gin.Context, c transaction.TransactionServiceClient) {
-	utils.Logger()
 	t := models.NewTransaction{}
 
 	if err := ctx.BindJSON(&t); err != nil {
@@ -111,7 +110,6 @@ func CreateTransaction(ctx *gin.Context, c transaction.TransactionServiceClient)
 // @Failure 500 {object} ErrorResponse
 // @Security Bearer
 func GetTransaction(ctx *gin.Context, c transaction.TransactionServiceClient) {
-	utils.Logger()
 	id, _ := strconv.ParseInt(ctx.Param("id"), 10, 32)
 
 	res, err := c.GetTransaction(context.Background(), &transaction.GetTransactionRequest{
@@ -166,7 +164,6 @@ func GetTransaction(ctx *gin.Context, c transaction.TransactionServiceClient) {
 // @Router /transaction [Get]
 // @Security Bearer
 func GetTransactions(ctx *gin.Context, c transaction.TransactionServiceClient) {
-	utils.Logger()
 	slog.Info("request", "url", ctx.Request.RequestURI)
 	var request = &models.TransactionsRequest{}
 
@@ -268,7 +265,6 @@ func GetTransactions(ctx *gin.Context, c transaction.TransactionServiceClient) {
 // @Failure 500 {object} ErrorResponse
 // @Security Bearer
 func UpdateTransaction(ctx *gin.Context, c transaction.TransactionServiceClient) {
-	utils.Logger()
 	id, _ := strconv.ParseInt(ctx.Param("id"), 10, 32)
 
 	slog.Info("Update transaction", "ID", id)
@@ -356,7 +352,6 @@ func UpdateTransaction(ctx *gin.Context, c transaction.TransactionServiceClient)
 // @Failure 500 {object} ErrorResponse
 // @Security Bearer
 func DeleteTransaction(ctx *gin.Context, c transaction.TransactionServiceClient) {
-	utils.Logger()
 	id, _ := strconv.ParseInt(ctx.Param("id"), 10, 32)
 
 	slog.Info("Delete transaction", "ID", id)

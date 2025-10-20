@@ -29,7 +29,6 @@ import (
 // @Failure 500 {object} ErrorResponse
 // @Security Bearer
 func CreateTransactionItem(ctx *gin.Context, c transactionItem.TransactionItemServiceClient) {
-	utils.Logger()
 	// read transaction id
 	id, _ := strconv.ParseUint(ctx.Param("id"), 10, 32)
 
@@ -284,7 +283,6 @@ func DeleteTransactionItem(ctx *gin.Context, c transactionItem.TransactionItemSe
 // @Router /transaction [Get]
 // @Security Bearer
 func GetTransactionItems(ctx *gin.Context, c transactionItem.TransactionItemServiceClient) {
-	utils.Logger()
 	slog.Info("request uri", "uri", ctx.Request.RequestURI)
 	id, _ := strconv.ParseInt(ctx.Param("id"), 10, 32)
 	var request = &models.TransactionItemsRequest{}

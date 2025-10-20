@@ -9,7 +9,6 @@ import (
 	"github.com/bdarge/api-gateway/out/lang"
 	"github.com/bdarge/api-gateway/pkg/models"
 	"github.com/gin-gonic/gin"
-	"github.com/bdarge/api-gateway/pkg/utils"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -20,7 +19,6 @@ import (
 // @Success 200 {object} models.Langs
 // @Router /lang [get]
 func GetLang(ctx *gin.Context, client lang.LangServiceClient) {
-	utils.Logger()
 	slog.Info("request", "uri", ctx.Request.RequestURI)
 
 	res, err := client.GetLang(context.Background(), &lang.LangGetRequest{})
