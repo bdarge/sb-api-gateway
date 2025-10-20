@@ -2,8 +2,11 @@ package utils
 
 import (
 	"encoding/json"
-	"github.com/go-playground/validator/v10"
+	"log/slog"
+	"os"
 	"strings"
+
+	"github.com/go-playground/validator/v10"
 )
 
 // Recast https://stackoverflow.com/a/72436927
@@ -39,4 +42,10 @@ func GetErrorMsg(fe validator.FieldError) string {
 		return result
 	}
 	return "Unknown error"
+}
+
+// Logger setup logger
+func Logger() {
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	slog.SetDefault(logger)
 }

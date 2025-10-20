@@ -3,11 +3,11 @@ package auth
 import (
 	"context"
 	"net/http"
-	"os"
 
 	"github.com/bdarge/api-gateway/out/auth"
 	"github.com/bdarge/api-gateway/pkg/config"
 	"github.com/bdarge/api-gateway/pkg/models"
+	"github.com/bdarge/api-gateway/pkg/utils"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/exp/slog"
 )
@@ -75,8 +75,7 @@ func Register(ctx *gin.Context, c auth.AuthServiceClient) {
 // @Success 200 {object} models.LoginResponse
 // @Router /auth/login [post]
 func Login(ctx *gin.Context, authClient auth.AuthServiceClient, config *config.Config) {
-	logger := slog.New(slog.NewJSONHandler(os.Stdout,  &slog.HandlerOptions{}))
-	slog.SetDefault(logger)
+	utils.Logger()
 
 	account := Account{}
 	slog.Info("Start authenticating with email and password")
@@ -125,8 +124,7 @@ func Login(ctx *gin.Context, authClient auth.AuthServiceClient, config *config.C
 // @Success 200 {object} models.LoginResponse
 // @Router /auth/refresh-token [post]
 func RefreshToken(ctx *gin.Context, c auth.AuthServiceClient) {
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-	slog.SetDefault(logger)
+	utils.Logger()
 
 	token, err := ctx.Cookie("token")
 
