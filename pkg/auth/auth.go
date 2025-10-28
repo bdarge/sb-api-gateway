@@ -106,7 +106,7 @@ func Login(ctx *gin.Context, authClient auth.AuthServiceClient, config *config.C
 		Error:  result.Error,
 	}
 	ctx.SetSameSite(http.SameSiteNoneMode)
-
+	slog.Info("request url", "url", ctx.Request.Host)
 	ctx.SetCookie(
 		"token", result.RefreshToken, config.RefreshTokenExpOn,
 		"/", config.UIDomain, true, true,

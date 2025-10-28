@@ -65,7 +65,7 @@ func main() {
 	slog.Info("Configure cors")
 
 	c := cors.New(cors.Options{
-    AllowedOrigins: []string{"http://localhost:*", "http://sb.odainfo.com"},
+    AllowedOrigins: []string{"http://localhost:*","http://127.0.0.1:*", "http://sb.odainfo.com"},
 		AllowedHeaders: []string{"Authorization", "Content-Type"},
     AllowCredentials: true,
 		AllowedMethods: []string{"HEAD", "POST", "GET", "PATCH", "DELETE"},

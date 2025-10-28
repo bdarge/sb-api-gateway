@@ -10,14 +10,17 @@ import (
 	"strings"
 )
 
+// Middleware struct to manage service client
 type Middleware struct {
 	svc *ServiceClient
 }
 
+// InitAuthMiddleware initialize Middleware
 func InitAuthMiddleware(svc *ServiceClient) Middleware {
 	return Middleware{svc}
 }
 
+// AuthRequired check auth requirement
 func (c *Middleware) AuthRequired(ctx *gin.Context) {
 	authorization := ctx.Request.Header.Get("authorization")
 
